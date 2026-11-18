@@ -122,7 +122,8 @@ footer{margin-top:56px;color:var(--muted);font-size:.9rem;border-top:1px solid v
     <span class="tag t-p">source primaire</span> lu dans une doc ou un dépôt officiel, sans contre-vérification ·
     <span class="tag t-j">jugement</span> choix d'ingénierie raisonné, non sourcé ·
     <span class="tag t-n">à tester</span> non vérifié, à établir par un essai ·
-    <span class="tag t-v">essai réussi</span> établi par un prototype mené dans ce dépôt.
+    <span class="tag t-v">essai réussi</span> validé par un prototype mené dans ce dépôt ·
+    <span class="tag t-n">établi par essai</span> défaut constaté par un prototype.
   </p>
 </div>
 
@@ -302,7 +303,7 @@ footer{margin-top:56px;color:var(--muted);font-size:.9rem;border-top:1px solid v
   <figcaption>Le BLoC ne contient aucune règle métier : il traduit un event en appel, et chaque notification en relecture puis en état <code>sealed</code>. La TUI appelle directement les cas d'usage : elle n'utilise ni la partie Dart ni la boîte <code>bridge</code>.</figcaption>
 </figure>
 
-<div class="note"><b>Pourquoi une notification et non les données elles-mêmes :</b> un prototype a montré que les flux de données du pont perdent des événements ou se bloquent dans le navigateur <span class="tag t-v">essai réussi</span> (au sens : essai mené, défaut établi). Le flux ne transporte donc qu'un numéro de version ; les données viennent toujours d'une requête ordinaire. Une notification perdue est sans conséquence, car Dart relit aussi à l'abonnement et au retour au premier plan.</div>
+<div class="note"><b>Pourquoi une notification et non les données elles-mêmes :</b> un prototype a montré que les flux de données du pont perdent des événements ou se bloquent dans le navigateur <span class="tag t-n">établi par essai</span>. Le flux ne transporte donc qu'un numéro de version ; les données viennent toujours d'une requête ordinaire. Une notification perdue est sans conséquence, car Dart relit aussi à l'abonnement et au retour au premier plan.</div>
 
 <h2 id="sync">5. Hors ligne et synchronisation</h2>
 <p>Principe : l'application écrit toujours en local d'abord. Chaque écriture enregistre, dans la même transaction, une <b>mutation</b> à envoyer plus tard. Le serveur reste l'autorité.</p>
