@@ -1,0 +1,11 @@
+[package]
+name = "atelier-tui"
+version = "0.0.0"
+edition = "2024"
+publish = false
+description = "Spike S6 : atome ratatui alimenté par des jetons DTCG générés"
+
+[dependencies]
+ratatui = "0.30.2"
+
+[workspace]

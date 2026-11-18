@@ -1,0 +1,180 @@
+{
+  "$description": "Jetons du spike S6 (DTCG 2025.10)",
+  "color": {
+    "$type": "color",
+    "blue": {
+      "100": {
+        "$value": {
+          "colorSpace": "srgb",
+          "components": [
+            0.858824,
+            0.917647,
+            0.996078
+          ],
+          "hex": "#dbeafe"
+        }
+      },
+      "500": {
+        "$value": {
+          "colorSpace": "srgb",
+          "components": [
+            0.231373,
+            0.509804,
+            0.964706
+          ],
+          "hex": "#3b82f6"
+        }
+      },
+      "700": {
+        "$value": {
+          "colorSpace": "srgb",
+          "components": [
+            0.113725,
+            0.305882,
+            0.847059
+          ],
+          "hex": "#1d4ed8"
+        }
+      }
+    },
+    "red": {
+      "500": {
+        "$value": {
+          "colorSpace": "srgb",
+          "components": [
+            0.937255,
+            0.266667,
+            0.266667
+          ],
+          "hex": "#ef4444"
+        }
+      },
+      "400": {
+        "$value": {
+          "colorSpace": "srgb",
+          "components": [
+            0.972549,
+            0.443137,
+            0.443137
+          ],
+          "hex": "#f87171"
+        }
+      }
+    },
+    "gray": {
+      "50": {
+        "$value": {
+          "colorSpace": "srgb",
+          "components": [
+            0.972549,
+            0.980392,
+            0.988235
+          ],
+          "hex": "#f8fafc"
+        }
+      },
+      "100": {
+        "$value": {
+          "colorSpace": "srgb",
+          "components": [
+            0.945098,
+            0.960784,
+            0.976471
+          ],
+          "hex": "#f1f5f9"
+        }
+      },
+      "800": {
+        "$value": {
+          "colorSpace": "srgb",
+          "components": [
+            0.117647,
+            0.160784,
+            0.231373
+          ],
+          "hex": "#1e293b"
+        }
+      },
+      "900": {
+        "$value": {
+          "colorSpace": "srgb",
+          "components": [
+            0.058824,
+            0.090196,
+            0.164706
+          ],
+          "hex": "#0f172a"
+        }
+      }
+    },
+    "blue-dark": {
+      "400": {
+        "$value": {
+          "colorSpace": "srgb",
+          "components": [
+            0.376471,
+            0.647059,
+            0.980392
+          ],
+          "hex": "#60a5fa"
+        }
+      }
+    }
+  },
+  "mode": {
+    "light": {
+      "$type": "color",
+      "surface": {
+        "$value": "{color.gray.50}"
+      },
+      "texte": {
+        "$value": "{color.gray.900}"
+      },
+      "accent": {
+        "$value": "{color.blue.700}"
+      },
+      "danger": {
+        "$value": "{color.red.500}"
+      },
+      "emphasis": {
+        "$type": "fontWeight",
+        "$value": 700,
+        "$description": "Emphase : gras en TUI",
+        "$extensions": {
+          "atelier.tui": {
+            "modifiers": [
+              "bold"
+            ]
+          }
+        }
+      }
+    },
+    "dark": {
+      "$type": "color",
+      "surface": {
+        "$value": "{color.gray.900}"
+      },
+      "texte": {
+        "$value": "{color.gray.50}"
+      },
+      "accent": {
+        "$value": "{color.blue-dark.400}"
+      },
+      "danger": {
+        "$value": "{color.red.400}"
+      },
+      "emphasis": {
+        "$type": "fontWeight",
+        "$value": 700,
+        "$description": "Emphase : gras en TUI",
+        "$extensions": {
+          "atelier.tui": {
+            "modifiers": [
+              "bold"
+            ]
+          }
+        }
+      }
+    }
+  }
+}
