@@ -867,7 +867,7 @@ Chaque essai est un prototype jetable, borné dans le temps, avec un critère de
 |---|---|---|---|
 | **S1** ✅ | **Réussi le 2026-11-18 sur Linux et émulateur Android** (`adr/S1-pont-frb.md`) ; Apple non testé, à couvrir par un runner macOS. Énoncé d'origine : FRB 2.13.0, backend `native-assets`, crate `bridge` dans le Cargo workspace, Flutter 3.50 | Une fonction async et un flux appelés depuis Flutter sur Linux, Android et un appareil Apple | Backend `cargokit` ; ou attendre FRB 2.14. La CI de FRB cible Flutter 3.47 : compatibilité 3.50 `[NV]` |
 | **S2** ✅ | **Réussi le 2026-11-18 sur Chrome et Firefox** (`adr/S2-wasm-sqlite.md`), plan A retenu ; **Safari non testé**. Énoncé d'origine : cœur en WASM : `build-web`, `rusqlite` + VFS `sahpool`, écriture, rechargement de page, relecture ; second onglet | Donnée relue après rechargement sur Chrome, Firefox et Safari ; second onglet détecté proprement | Plan B ou C (ADR-07) |
-| **S3** | En-têtes `COOP: same-origin` + `COEP: require-corp` sur l'hébergeur visé ; connexion par redirection | `crossOriginIsolated` vrai sur Safari ; connexion fonctionnelle | Mode sans en-têtes (`default_dart_async: false`), avec perte de réactivité |
+| **S3** (à mener) | En-têtes `COOP: same-origin` + `COEP: require-corp` sur l'hébergeur visé ; connexion par redirection | `crossOriginIsolated` vrai sur Safari ; connexion fonctionnelle | Changer d'hébergeur. Le mode sans en-têtes n'est plus un repli : il est incompatible avec le plan A de stockage (§3.7). Si Safari échoue : plan C |
 | **S4** ✅ | **Réussi le 2026-11-18** (`adr/S4-gherkin-partage.md`), dialecte plus étroit que prévu : voir §8. Énoncé d'origine : un `.feature` partagé : cucumber-rs + `bdd_widget_test` avec `literalParameters`, `# language: fr`, une table, un `Scenario Outline`, une étiquette d'exclusion | Les deux exécutants passent sur le même fichier ; `sync_features --check` détecte un écart | Dialecte plus restreint, ou `gherkart` |
 | **S5** ❌ | **Critère non atteint le 2026-11-18** (`adr/S5-flux-web.md`) : pertes et blocages mesurés ; le repli est adopté comme forme unique (§5.4). Énoncé d'origine : flux FRB sur le web : 1 000 émissions, annulation d'abonnement, rechargement à chaud | Aucune perte, aucun blocage | Repli sur requêtes ponctuelles + notification de changement |
 | **S6** ✅ | **Réussi le 2026-11-18** (`adr/S6-jetons-ratatui.md`) ; reste la sortie Dart `ThemeExtension`. Énoncé d'origine : format Style Dictionary personnalisé vers Rust | Palette ratatui générée et utilisée par un atome | Générateur `build.rs` maison |
@@ -894,16 +894,18 @@ Autres risques suivis :
 Chaque étape se termine par les gates vertes et un commit.
 
 1. **Squelette** : workspace Cargo, pub workspace, toolchains épinglées, linters, CI minimale (jobs `rust` et `flutter` vides mais verts).
-2. **S1** puis **S4** : sans pont et sans spécification partagée, rien d'autre n'a de sens.
+2. ~~S1 puis S4~~ : faits. Reprendre leurs acquis depuis `spikes/s1-pont/` et `spikes/s4-gherkin/` (intégration du pont au workspace, `sync_features`).
 3. **Tranche verticale 1, cœur seul** : un scénario `@core`, un agrégat, un cas d'usage, adaptateur en mémoire.
 4. **Persistance native** : adaptateur SQLite, tests d'intégration.
 5. **TUI** : même scénario en `@tui`, premier snapshot.
 6. **Flutter** : `core_bridge`, première tranche FSD, BLoC, scénario `@gui`, puis `@e2e` sur Linux.
-7. **Design system** : tokens, trois atomes, Widgetbook, goldens ; **S6**.
+7. **Design system** : tokens, trois atomes, Widgetbook, goldens. S6 est fait (palette ratatui) ; reste à générer et compiler le `ThemeExtension` Dart.
 8. **Synchronisation** : `sync-protocol`, boîte d'envoi, serveur factice, scénarios de conflit.
-9. **Web applicatif** : **S2**, **S3**, **S5**, choix du plan de persistance, build et déploiement.
+9. **Web applicatif** : plan A de persistance (S2 fait), modèles de lecture par notifications de version (S5 fait), Worker de stockage réellement dédié à écrire, puis **S3** et la vérification sur Safari, build et déploiement.
 10. **Web public** : site Leptos, premier scénario `@web-public`.
 11. **Distribution** : empaquetage par cible, release.
+
+À mener en parallèle dès l'étape 1 : un job CI sur runner macOS qui rejoue le prototype S1 pour iOS et macOS, seules cibles du pont encore non validées.
 
 ---
 
