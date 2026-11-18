@@ -1,0 +1,587 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Architecture multiplateforme</title>
+<style>
+:root{
+  --bg:#fbfaf7; --surface:#ffffff; --ink:#1d1c1a; --muted:#6b665e; --line:#d9d5cc;
+  --rust:#b4501e; --rust-bg:#fbeee6;
+  --dart:#1b6fb5; --dart-bg:#e8f2fb;
+  --web:#2f7d4f;  --web-bg:#e9f5ee;
+  --warn:#9a6700; --warn-bg:#fff4d6;
+  --code-bg:#f1eee8;
+}
+@media (prefers-color-scheme: dark){
+  :root{
+    --bg:#16171a; --surface:#1f2126; --ink:#e9e7e2; --muted:#a09c94; --line:#3a3d45;
+    --rust:#e58a55; --rust-bg:#3a2418;
+    --dart:#6fb1e8; --dart-bg:#17293a;
+    --web:#6cc08d;  --web-bg:#17301f;
+    --warn:#e0b040; --warn-bg:#3a2e10;
+    --code-bg:#2a2c32;
+  }
+}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{margin:0;background:var(--bg);color:var(--ink);
+  font:16px/1.6 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+main{max-width:980px;margin:0 auto;padding:32px 16px 80px}
+h1{font-size:2rem;line-height:1.2;margin:0 0 8px}
+h2{font-size:1.4rem;margin:56px 0 12px;padding-top:12px;border-top:1px solid var(--line)}
+h3{font-size:1.08rem;margin:28px 0 8px}
+p{margin:0 0 12px}
+.lead{font-size:1.1rem;color:var(--muted);margin-bottom:24px}
+a{color:var(--dart)}
+code{background:var(--code-bg);padding:1px 5px;border-radius:4px;font-size:.9em;
+  font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace}
+nav{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:14px 18px;margin:24px 0}
+nav ol{margin:0;padding-left:20px;columns:2;column-gap:32px}
+nav li{margin:2px 0}
+@media (max-width:640px){nav ol{columns:1}}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:16px 18px;margin:14px 0}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(270px,1fr));gap:14px;margin:14px 0}
+.grid .card{margin:0}
+.card h3{margin-top:0}
+.verdict{border-left:4px solid var(--rust)}
+.note{background:var(--warn-bg);border:1px solid var(--warn);border-radius:10px;padding:12px 16px;margin:14px 0}
+.tag{display:inline-block;font-size:.72rem;font-weight:600;letter-spacing:.02em;padding:1px 8px;border-radius:999px;
+  border:1px solid currentColor;white-space:nowrap;vertical-align:middle}
+.t-v{color:var(--web)} .t-p{color:var(--dart)} .t-j{color:var(--rust)} .t-n{color:var(--warn)}
+.tablewrap{overflow-x:auto;margin:14px 0}
+table{border-collapse:collapse;width:100%;min-width:560px;background:var(--surface);font-size:.94rem}
+th,td{border:1px solid var(--line);padding:8px 10px;text-align:left;vertical-align:top}
+th{background:var(--code-bg);font-weight:600}
+figure{margin:18px 0;background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:14px}
+figure .scroll{overflow-x:auto}
+figure svg{display:block;width:100%;min-width:680px;height:auto}
+figcaption{color:var(--muted);font-size:.9rem;margin-top:10px}
+svg text{font-family:inherit;font-size:13px;fill:var(--ink)}
+svg .small{font-size:11.5px;fill:var(--muted)}
+svg .ttl{font-weight:600;font-size:14px}
+svg .box{fill:var(--surface);stroke:var(--line);stroke-width:1.5}
+svg .rust{fill:var(--rust-bg);stroke:var(--rust)}
+svg .dart{fill:var(--dart-bg);stroke:var(--dart)}
+svg .web{fill:var(--web-bg);stroke:var(--web)}
+svg .zone{fill:none;stroke:var(--line);stroke-width:1.5;stroke-dasharray:5 4}
+svg .ar{stroke:var(--muted);stroke-width:1.6;fill:none;marker-end:url(#ah)}
+svg .ar2{stroke:var(--muted);stroke-width:1.6;fill:none;stroke-dasharray:5 4;marker-end:url(#ah)}
+svg .ah{fill:var(--muted)}
+.layers{display:flex;flex-direction:column;gap:8px}
+.layer{border:1.5px solid var(--rust);background:var(--rust-bg);border-radius:8px;padding:10px 14px}
+.layer.out{border-color:var(--line);background:var(--surface)}
+.layer b{display:inline-block;min-width:150px}
+.layer span{color:var(--muted);font-size:.93rem}
+.steps{list-style:none;padding:0;margin:14px 0;display:grid;gap:8px;counter-reset:s}
+.steps li{counter-increment:s;background:var(--surface);border:1px solid var(--line);border-radius:8px;
+  padding:10px 14px 10px 48px;position:relative}
+.steps li::before{content:counter(s);position:absolute;left:12px;top:10px;width:24px;height:24px;border-radius:50%;
+  background:var(--code-bg);text-align:center;line-height:24px;font-weight:600;font-size:.85rem}
+.steps li.red{border-left:4px solid #c0392b}
+.steps li.green{border-left:4px solid var(--web)}
+.steps li.inner{margin-left:28px;border-left:4px solid var(--dart)}
+.pipe{display:flex;flex-wrap:wrap;gap:8px;margin:14px 0}
+.pipe div{flex:1 1 150px;background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:10px 12px;font-size:.92rem}
+.pipe b{display:block;margin-bottom:2px}
+ul{padding-left:22px;margin:0 0 12px}
+li{margin:3px 0}
+footer{margin-top:56px;color:var(--muted);font-size:.9rem;border-top:1px solid var(--line);padding-top:16px}
+</style>
+</head>
+<body>
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <defs>
+    <marker id="ah" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path class="ah" d="M0 0 L10 5 L0 10 z"/>
+    </marker>
+  </defs>
+</svg>
+<main>
+
+<h1>Une application, toutes les plateformes</h1>
+<p class="lead">Étude d'architecture : cœur Rust partagé, interface Flutter, TUI Rust et web en deux parties. État des lieux au 16 novembre 2026.</p>
+
+<div class="card verdict">
+  <h3>La recommandation en six lignes</h3>
+  <ul>
+    <li><b>Un cœur Rust hexagonal</b> porte le domaine, les cas d'usage, le stockage local et la synchronisation.</li>
+    <li><b>Flutter</b> l'appelle par <code>flutter_rust_bridge</code> v2 ; votre présentation (BLoC <code>sealed</code>, FSD, <code>injectable</code>) ne change pas.</li>
+    <li><b>La TUI</b> (ratatui) et <b>le site public</b> appellent le cœur directement, sans pont.</li>
+    <li><b>Le web se coupe en deux</b> : site public en HTML (Leptos), application en Flutter Web avec le cœur compilé en WASM.</li>
+    <li><b>La synchronisation est écrite dans le cœur</b>, sur un modèle simple à serveur d'autorité.</li>
+    <li><b>Une seule spécification Gherkin</b> pilote le cœur, la TUI et Flutter.</li>
+  </ul>
+  <p style="margin:0">Le point le moins sûr est le stockage hors ligne dans le navigateur : il faut un essai avant de s'engager (<a href="#risques">section 13</a>).</p>
+</div>
+
+<div class="card">
+  <h3>Comment lire les pastilles</h3>
+  <p style="margin:0">
+    <span class="tag t-v">vérifié</span> confirmé par trois vérificateurs indépendants sur source officielle ·
+    <span class="tag t-p">source primaire</span> lu dans une doc ou un dépôt officiel, sans contre-vérification ·
+    <span class="tag t-j">jugement</span> choix d'ingénierie raisonné, non sourcé ·
+    <span class="tag t-n">à tester</span> non vérifié, à établir par un essai.
+  </p>
+</div>
+
+<nav aria-label="Sommaire">
+  <ol>
+    <li><a href="#vue">Vue d'ensemble</a></li>
+    <li><a href="#decisions">Les six décisions</a></li>
+    <li><a href="#coeur">Le cœur Rust</a></li>
+    <li><a href="#flux">Parcours d'une action</a></li>
+    <li><a href="#sync">Hors ligne et synchronisation</a></li>
+    <li><a href="#web">Le web en deux parties</a></li>
+    <li><a href="#flutter">Côté Flutter</a></li>
+    <li><a href="#tui">La TUI</a></li>
+    <li><a href="#tests">Une spécification, trois exécutants</a></li>
+    <li><a href="#design">Design system</a></li>
+    <li><a href="#ci">Intégration continue et distribution</a></li>
+    <li><a href="#alternatives">Alternatives écartées</a></li>
+    <li><a href="#risques">Risques et essais préalables</a></li>
+    <li><a href="#route">Feuille de route</a></li>
+    <li><a href="#limites">Limites de l'étude</a></li>
+  </ol>
+</nav>
+
+<h2 id="vue">1. Vue d'ensemble</h2>
+<p>Trois « coques » d'interface partagent un même cœur. Seule Flutter a besoin d'un pont, parce qu'elle est écrite en Dart ; la TUI et le site public sont en Rust et appellent le cœur comme une bibliothèque ordinaire.</p>
+
+<figure>
+  <div class="scroll">
+  <svg viewBox="0 0 900 470" role="img" aria-label="Trois coques au-dessus d'un cœur Rust unique">
+    <rect class="box dart" x="20" y="20" width="420" height="70" rx="8"/>
+    <text class="ttl" x="230" y="48" text-anchor="middle">Application Flutter</text>
+    <text class="small" x="230" y="70" text-anchor="middle">Windows · Linux · macOS · iOS · Android · Web applicatif</text>
+
+    <rect class="box" x="470" y="20" width="190" height="70" rx="8"/>
+    <text class="ttl" x="565" y="48" text-anchor="middle">TUI ratatui</text>
+    <text class="small" x="565" y="70" text-anchor="middle">terminal</text>
+
+    <rect class="box web" x="690" y="20" width="190" height="70" rx="8"/>
+    <text class="ttl" x="785" y="48" text-anchor="middle">Site public Leptos</text>
+    <text class="small" x="785" y="70" text-anchor="middle">pages indexables</text>
+
+    <rect class="box" x="20" y="130" width="420" height="50" rx="8"/>
+    <text x="230" y="152" text-anchor="middle">Pont flutter_rust_bridge</text>
+    <text class="small" x="230" y="170" text-anchor="middle">FFI en natif · WASM sur le web</text>
+
+    <path class="ar" d="M230 90 V130"/>
+    <path class="ar" d="M230 180 V220"/>
+    <path class="ar" d="M565 90 V220"/>
+    <path class="ar" d="M785 90 V220"/>
+    <text class="small" x="575" y="160">appel Rust direct</text>
+    <text class="small" x="795" y="160">appel direct</text>
+
+    <rect class="box rust" x="20" y="220" width="860" height="160" rx="10"/>
+    <text class="ttl" x="40" y="244">Cœur Rust</text>
+    <rect class="box" x="40" y="254" width="820" height="34" rx="6"/>
+    <text x="56" y="276">application — cas d'usage, ports, modèles de lecture</text>
+    <rect class="box" x="40" y="294" width="820" height="34" rx="6"/>
+    <text x="56" y="316">domain — entités, objets-valeur, invariants</text>
+    <rect class="box" x="40" y="334" width="820" height="34" rx="6"/>
+    <text x="56" y="356">adapters — SQLite · synchronisation · plateforme</text>
+
+    <path class="ar" d="M290 380 V415"/>
+    <path class="ar" d="M610 380 V415"/>
+    <rect class="box" x="180" y="415" width="220" height="44" rx="8"/>
+    <text x="290" y="442" text-anchor="middle">SQLite local (fichier ou OPFS)</text>
+    <rect class="box" x="500" y="415" width="220" height="44" rx="8"/>
+    <text x="610" y="442" text-anchor="middle">Serveur de synchronisation</text>
+  </svg>
+  </div>
+  <figcaption>Votre intuition de départ (cœur Rust appelé par Flutter en FFI) est la bonne. C'est aussi la forme retenue par Bitwarden, Element X et AppFlowy <span class="tag t-p">source primaire</span>.</figcaption>
+</figure>
+
+<h2 id="decisions">2. Les six décisions</h2>
+
+<div class="grid">
+  <div class="card">
+    <h3>① Où s'arrête Rust ?</h3>
+    <p><b>Aux cas d'usage.</b> La présentation reste en Dart, dans vos BLoC.</p>
+    <p>Mettre aussi l'état d'écran dans Rust (façon Crux) supprimerait la duplication entre GUI et TUI, mais aucun outil ne le permet avec Flutter : Crux ne génère pas de types Dart <span class="tag t-v">vérifié</span>, et aucun projet Flutter en production ne le fait <span class="tag t-n">à tester</span>.</p>
+    <p style="margin:0"><b>Soupape :</b> quand une logique d'écran est complexe (tri, filtres, droits), le cœur renvoie un modèle « prêt à afficher » que BLoC et TUI enveloppent sans le recalculer. <span class="tag t-j">jugement</span></p>
+  </div>
+  <div class="card">
+    <h3>② Quel pont ?</h3>
+    <p><b><code>flutter_rust_bridge</code> 2.13.0.</b> Le seul qui couvre les six cibles, web compris, avec async et flux <span class="tag t-v">vérifié</span>.</p>
+    <p>UniFFI pour Dart est expérimental et sans web attesté. Rinf cherche un mainteneur <span class="tag t-p">source primaire</span>.</p>
+    <p style="margin:0"><b>Réserve :</b> un seul mainteneur écrit l'essentiel du projet. On enferme donc le pont dans un crate mince, remplaçable sans toucher au reste.</p>
+  </div>
+  <div class="card">
+    <h3>③ Web applicatif</h3>
+    <p><b>Flutter Web + cœur en WASM</b>, sur un sous-domaine dédié.</p>
+    <p>Le pont exige deux en-têtes HTTP d'isolation (COOP et COEP) <span class="tag t-v">vérifié</span>. Safari impose la variante stricte <code>require-corp</code> <span class="tag t-p">source primaire</span>.</p>
+    <p style="margin:0">Conséquences : pas de ressource tierce non déclarée, connexion par redirection plutôt que par popup.</p>
+  </div>
+  <div class="card">
+    <h3>④ Web public</h3>
+    <p><b>Un site HTML séparé, en Leptos.</b></p>
+    <p>La doc Flutter le dit elle-même : Flutter Web n'est pas fait pour le contenu indexable, il faut séparer <span class="tag t-v">vérifié</span>.</p>
+    <p style="margin:0">Leptos garde la pile à deux langages et réutilise le cœur tel quel. Jaspr (Dart) et Astro sont deux variantes valables. <span class="tag t-j">jugement</span></p>
+  </div>
+  <div class="card">
+    <h3>⑤ Stockage local</h3>
+    <p><b>SQLite partout</b> : <code>rusqlite</code> en natif et, si l'essai S2 le confirme, sur le web.</p>
+    <p>En natif, c'est sans histoire. Dans le navigateur, <code>rusqlite</code> compile désormais en WASM avec un stockage OPFS <span class="tag t-p">source primaire</span>, mais son mariage avec le pont n'a pas été essayé <span class="tag t-n">à tester</span>.</p>
+    <p style="margin:0">Trois plans de repli sont prévus (<a href="#sync">section 5</a>).</p>
+  </div>
+  <div class="card">
+    <h3>⑥ Synchronisation</h3>
+    <p><b>Un moteur maison dans le cœur.</b></p>
+    <p>PowerSync a bien un SDK Rust, mais il ne tourne pas dans le navigateur et ses mainteneurs n'envisagent pas de l'y porter <span class="tag t-p">source primaire</span>. L'adopter casserait le cœur unique.</p>
+    <p style="margin:0">Les CRDT (Loro, Automerge) ne valent le coût que pour de l'édition collaborative simultanée. <span class="tag t-j">jugement</span></p>
+  </div>
+</div>
+
+<h2 id="coeur">3. Le cœur Rust</h2>
+<p>Architecture hexagonale classique : les dépendances pointent toujours vers le domaine, et chaque couche est un crate distinct, avec une liste fermée de dépendances autorisées.</p>
+
+<div class="layers">
+  <div class="layer out"><b>bridge · tui · web-public</b> <span>les trois points d'entrée ; aucun ne contient de règle métier</span></div>
+  <div class="layer out"><b>core</b> <span>façade : assemble les adaptateurs et expose un point d'entrée unique</span></div>
+  <div class="layer"><b>application</b> <span>cas d'usage, ports (traits), modèles de lecture ; ignore SQLite, HTTP et Flutter</span></div>
+  <div class="layer"><b>domain</b> <span>entités, objets-valeur, invariants ; aucune entrée-sortie</span></div>
+  <div class="layer out"><b>adapters</b> <span>implémentent les ports : <code>storage-sqlite</code>, <code>sync-http</code>, <code>platform-*</code></span></div>
+</div>
+
+<h3>Quatre règles qui protègent du pont</h3>
+<ul>
+  <li><b>Un seul crate dépend de <code>flutter_rust_bridge</code></b> : <code>bridge</code>. Si le pont devient intenable, c'est le seul à réécrire.</li>
+  <li><b>API à gros grain</b> : un appel par cas d'usage, des structures simples en paramètres.</li>
+  <li><b>Jamais de panique</b> : toute fonction exposée renvoie un <code>Result</code>. Le code généré par le pont tue le processus si le binaire est compilé avec <code>panic = "abort"</code> <span class="tag t-p">source primaire</span>.</li>
+  <li><b>Version épinglée exactement</b>, identique côté Rust, Dart et générateur.</li>
+</ul>
+
+<h2 id="flux">4. Parcours d'une action</h2>
+<p>Exemple : l'utilisateur crée une note. La flèche pleine est la commande ; la flèche pointillée est le retour, qui passe par un <b>flux</b> et non par la valeur de retour de l'appel.</p>
+
+<figure>
+  <div class="scroll">
+  <svg viewBox="0 0 900 330" role="img" aria-label="Parcours d'une commande de Flutter jusqu'à SQLite et retour par un flux">
+    <rect class="zone" x="20" y="30" width="860" height="110" rx="10"/>
+    <text class="ttl" x="34" y="50">Dart</text>
+    <rect class="zone" x="20" y="180" width="860" height="120" rx="10"/>
+    <text class="ttl" x="34" y="200">Rust</text>
+
+    <rect class="box dart" x="70" y="62" width="130" height="56" rx="8"/><text x="135" y="95" text-anchor="middle">Widget</text>
+    <rect class="box dart" x="240" y="62" width="130" height="56" rx="8"/><text x="305" y="95" text-anchor="middle">BLoC</text>
+    <rect class="box dart" x="410" y="62" width="150" height="56" rx="8"/><text x="485" y="95" text-anchor="middle">Passerelle</text>
+    <rect class="box dart" x="600" y="62" width="160" height="56" rx="8"/><text x="680" y="95" text-anchor="middle">core_bridge</text>
+
+    <path class="ar" d="M200 78 H240"/><path class="ar" d="M370 78 H410"/><path class="ar" d="M560 78 H600"/>
+    <path class="ar2" d="M600 104 H560"/><path class="ar2" d="M410 104 H370"/><path class="ar2" d="M240 104 H200"/>
+    <text class="small" x="220" y="58" text-anchor="middle">① event</text>
+    <text class="small" x="390" y="58" text-anchor="middle">②</text>
+    <text class="small" x="580" y="58" text-anchor="middle">③</text>
+    <text class="small" x="220" y="134" text-anchor="middle">⑩ état</text>
+    <text class="small" x="390" y="134" text-anchor="middle">⑨</text>
+    <text class="small" x="580" y="134" text-anchor="middle">⑧</text>
+
+    <path class="ar" d="M650 118 V212"/>
+    <path class="ar2" d="M715 212 V118"/>
+    <text class="small" x="640" y="165" text-anchor="end">④ appel async</text>
+    <text class="small" x="725" y="165">⑦ flux</text>
+
+    <rect class="box rust" x="600" y="212" width="160" height="56" rx="8"/><text x="680" y="245" text-anchor="middle">bridge</text>
+    <rect class="box rust" x="410" y="212" width="150" height="56" rx="8"/><text x="485" y="237" text-anchor="middle">Cas d'usage</text><text class="small" x="485" y="255" text-anchor="middle">+ règles du domaine</text>
+    <rect class="box rust" x="240" y="212" width="130" height="56" rx="8"/><text x="305" y="237" text-anchor="middle">Adaptateur</text><text class="small" x="305" y="255" text-anchor="middle">port de stockage</text>
+    <rect class="box" x="40" y="212" width="160" height="56" rx="8"/>
+    <text x="120" y="237" text-anchor="middle">SQLite</text><text class="small" x="120" y="255" text-anchor="middle">+ boîte d'envoi</text>
+
+    <path class="ar" d="M600 228 H560"/><path class="ar" d="M410 228 H370"/><path class="ar" d="M240 228 H200"/>
+    <path class="ar2" d="M560 254 H600"/>
+    <text class="small" x="580" y="208" text-anchor="middle">⑤</text>
+    <text class="small" x="390" y="208" text-anchor="middle">⑥</text>
+    
+    <text class="small" x="485" y="290" text-anchor="middle">modèle de lecture recalculé</text>
+  </svg>
+  </div>
+  <figcaption>Le BLoC ne contient aucune règle métier : il traduit un event en appel, et un flux en états <code>sealed</code>. La TUI appelle directement les cas d'usage : elle n'utilise ni la partie Dart ni la boîte <code>bridge</code>.</figcaption>
+</figure>
+
+<div class="note"><b>Attention sur le web :</b> la doc du pont signale que les flux peuvent y être instables <span class="tag t-v">vérifié</span>. Chaque flux doit avoir un test web, et le cœur doit offrir une requête ponctuelle équivalente en repli.</div>
+
+<h2 id="sync">5. Hors ligne et synchronisation</h2>
+<p>Principe : l'application écrit toujours en local d'abord. Chaque écriture enregistre, dans la même transaction, une <b>mutation</b> à envoyer plus tard. Le serveur reste l'autorité.</p>
+
+<figure>
+  <div class="scroll">
+  <svg viewBox="0 0 900 300" role="img" aria-label="Cycle de synchronisation entre l'appareil et le serveur">
+    <rect class="zone" x="20" y="20" width="390" height="260" rx="10"/>
+    <text class="ttl" x="34" y="42">Appareil (cœur Rust)</text>
+    <rect class="box rust" x="40" y="60" width="150" height="46" rx="8"/><text x="115" y="88" text-anchor="middle">Cas d'usage</text>
+    <rect class="box rust" x="230" y="60" width="160" height="46" rx="8"/><text x="310" y="88" text-anchor="middle">Moteur de sync</text>
+    <rect class="box" x="40" y="160" width="150" height="46" rx="8"/><text x="115" y="188" text-anchor="middle">Tables métier</text>
+    <rect class="box" x="230" y="160" width="160" height="46" rx="8"/><text x="310" y="188" text-anchor="middle">Boîte d'envoi</text>
+    <path class="ar" d="M115 106 V160"/><path class="ar" d="M160 106 L250 160"/>
+    <text class="small" x="106" y="130" text-anchor="end">une seule</text><text class="small" x="106" y="144" text-anchor="end">transaction</text>
+    <path class="ar" d="M310 160 V106"/>
+    <text class="small" x="215" y="244" text-anchor="middle">③ après le pull : rejouer les mutations encore en attente</text>
+
+    <rect class="zone" x="560" y="20" width="320" height="260" rx="10"/>
+    <text class="ttl" x="574" y="42">Serveur (autorité)</text>
+    <rect class="box" x="580" y="60" width="280" height="46" rx="8"/><text x="720" y="88" text-anchor="middle">API de synchronisation</text>
+    <rect class="box rust" x="580" y="130" width="280" height="46" rx="8"/><text x="720" y="158" text-anchor="middle">Mêmes règles (crate domain)</text>
+    <rect class="box" x="580" y="200" width="280" height="46" rx="8"/><text x="720" y="228" text-anchor="middle">Base serveur</text>
+    <path class="ar" d="M720 106 V130"/><path class="ar" d="M720 176 V200"/>
+
+    <path class="ar" d="M390 72 H580"/>
+    <path class="ar" d="M580 96 H390"/>
+    <text class="small" x="485" y="64" text-anchor="middle">① push des mutations</text>
+    <text class="small" x="485" y="114" text-anchor="middle">② pull depuis le curseur</text>
+  </svg>
+  </div>
+  <figcaption>Ce patron est celui que décrit Replicache et, dans son principe, celui de Figma <span class="tag t-p">source primaire</span>. Conflits : par défaut, le dernier écrivain gagne champ par champ, dans l'ordre fixé par le serveur <span class="tag t-j">jugement</span>.</figcaption>
+</figure>
+
+<h3>Le stockage dans le navigateur : trois plans</h3>
+<div class="tablewrap"><table>
+  <tr><th>Plan</th><th>Principe</th><th>Quand le retenir</th></tr>
+  <tr><td><b>A</b></td><td>Le même adaptateur SQLite qu'en natif, sur le stockage OPFS du navigateur. Un seul onglet à la fois.</td><td>Si l'essai S2 réussit. Le cœur est alors partagé à 100 %.</td></tr>
+  <tr><td><b>B</b></td><td>Pas de stockage durable sur le web : l'application web demande une connexion.</td><td>Si S2 échoue et que le hors-ligne web n'est pas prioritaire.</td></tr>
+  <tr><td><b>C</b></td><td>Sur le web seulement, le stockage est fourni par Dart et injecté dans le cœur.</td><td>Si S2 échoue et que le hors-ligne web est indispensable.</td></tr>
+</table></div>
+<p>L'architecture hexagonale rend ces plans interchangeables : seul l'adaptateur de stockage change, jamais le domaine.</p>
+
+<h3>Solutions du marché examinées</h3>
+<div class="tablewrap"><table>
+  <tr><th>Solution</th><th>Constat</th><th>Verdict</th></tr>
+  <tr><td>PowerSync</td><td>SDK Rust en bêta, SDK Flutter avec web en bêta <span class="tag t-v">vérifié</span> ; le SDK Rust ne tourne pas dans le navigateur <span class="tag t-p">source primaire</span></td><td>Variante si le backend est Postgres et que deux implémentations sont acceptables</td></tr>
+  <tr><td>Electric</td><td>Lecture seule, clients TypeScript et Elixir uniquement <span class="tag t-p">source primaire</span></td><td>Écarté</td></tr>
+  <tr><td>Turso</td><td>Synchronisation en pré-version, service cloud requis, rachat par Supabase annoncé <span class="tag t-p">source primaire</span></td><td>Trop mouvant</td></tr>
+  <tr><td>cr-sqlite</td><td>Aucune version publiée depuis janvier 2024 <span class="tag t-p">source primaire</span></td><td>Écarté</td></tr>
+  <tr><td>Loro, Automerge, Yrs</td><td>CRDT en Rust, sans transport ; la doc de Loro elle-même oriente ailleurs pour une simple synchronisation client-serveur <span class="tag t-v">vérifié</span></td><td>Seulement pour de l'édition collaborative</td></tr>
+</table></div>
+
+<h2 id="web">6. Le web en deux parties</h2>
+<p>Les deux besoins sont contradictoires : le site public veut du HTML léger, indexable et libre d'embarquer des services tiers ; l'application veut un environnement isolé pour faire tourner du WASM multi-fil. On les sert donc sur deux origines.</p>
+
+<figure>
+  <div class="scroll">
+  <svg viewBox="0 0 900 300" role="img" aria-label="Deux origines web distinctes et une API commune">
+    <rect class="box" x="330" y="12" width="240" height="40" rx="8"/><text x="450" y="37" text-anchor="middle">Navigateur</text>
+    <path class="ar" d="M400 52 L250 100"/><path class="ar" d="M500 52 L650 100"/>
+
+    <rect class="box web" x="30" y="100" width="390" height="120" rx="10"/>
+    <text class="ttl" x="225" y="128" text-anchor="middle">www.exemple.com</text>
+    <text x="225" y="154" text-anchor="middle">Site public — Leptos, rendu serveur</text>
+    <text class="small" x="225" y="176" text-anchor="middle">HTML indexable · chargement rapide</text>
+    <text class="small" x="225" y="196" text-anchor="middle">sans en-têtes d'isolation</text>
+
+    <rect class="box dart" x="480" y="100" width="390" height="120" rx="10"/>
+    <text class="ttl" x="675" y="128" text-anchor="middle">app.exemple.com</text>
+    <text x="675" y="154" text-anchor="middle">Flutter Web + cœur Rust en WASM</text>
+    <text class="small" x="675" y="176" text-anchor="middle">COOP : same-origin</text>
+    <text class="small" x="675" y="196" text-anchor="middle">COEP : require-corp</text>
+
+    <path class="ar" d="M420 160 H480"/>
+
+    <path class="ar" d="M250 220 L400 250"/><path class="ar" d="M650 220 L500 250"/>
+    <rect class="box" x="330" y="250" width="240" height="40" rx="8"/><text x="450" y="275" text-anchor="middle">API et synchronisation</text>
+  </svg>
+  </div>
+  <figcaption>Un lien mène du site public vers l'application. Les deux partagent le cœur Rust : compilé nativement dans le serveur Leptos, compilé en WASM dans l'application.</figcaption>
+</figure>
+
+<h3>Ce qu'il faut savoir sur Flutter Web aujourd'hui</h3>
+<ul>
+  <li>Le mode WebAssembly de Flutter 3.50 n'est actif par défaut que sur Chromium 137 et plus ; Safari et Firefox reçoivent la version JavaScript <span class="tag t-v">vérifié</span>.</li>
+  <li>Le pont ne produit du Dart WebAssembly qu'en version bêta 2.14 <span class="tag t-p">source primaire</span>. D'ici là, construire l'application web en JavaScript + CanvasKit <span class="tag t-j">jugement</span>.</li>
+  <li>Le build web du cœur demande la toolchain Rust <b>nightly</b> <span class="tag t-p">source primaire</span>.</li>
+  <li>L'accessibilité est désactivée par défaut et doit être activée au démarrage <span class="tag t-p">source primaire</span>.</li>
+  <li>GitHub Pages ne permet pas de fixer les en-têtes ; Cloudflare Pages, Netlify, Vercel et Firebase Hosting le permettent <span class="tag t-p">source primaire</span>.</li>
+</ul>
+
+<h3>Choisir la pile du site public</h3>
+<div class="tablewrap"><table>
+  <tr><th>Option</th><th>Atout</th><th>Limite</th></tr>
+  <tr><td><b>Leptos</b> (recommandé)</td><td>Réutilise le cœur Rust tel quel ; mêmes pratiques de test</td><td>Encore en version 0.8</td></tr>
+  <tr><td>Jaspr</td><td>Reste en Dart, cité par la doc Flutter, peut embarquer des widgets Flutter</td><td>Version 0.x, largement porté par un seul mainteneur ; ne réutilise pas le cœur Rust</td></tr>
+  <tr><td>Astro</td><td>Pertinent pour un site essentiellement éditorial</td><td>Ajoute TypeScript ; intégration WASM non vérifiée</td></tr>
+</table></div>
+
+<h2 id="flutter">7. Côté Flutter</h2>
+<p>Vos pratiques restent en place. Ce qui change : le segment « domaine » de chaque tranche ne contient plus de règle métier, puisqu'elles vivent dans Rust.</p>
+
+<div class="grid">
+  <div class="card">
+    <h3>Feature-Sliced Design</h3>
+    <p>Couches inchangées : <code>app</code>, <code>pages</code>, <code>widgets</code>, <code>features</code>, <code>entities</code>, <code>shared</code>.</p>
+    <p style="margin:0">Aucun linter FSD officiel n'existe pour Dart <span class="tag t-p">source primaire</span> : prévoir un contrôle d'imports maison ou le jeune paquet <code>import_rules</code>.</p>
+  </div>
+  <div class="card">
+    <h3>Clean Architecture par tranche</h3>
+    <p><code>presentation</code> : BLoC et widgets.<br><code>domain</code> : interfaces de passerelle, échecs <code>sealed</code>.<br><code>data</code> : seule partie qui importe le pont.</p>
+    <p style="margin:0">Les BLoC dépendent des passerelles, jamais du pont.</p>
+  </div>
+  <div class="card">
+    <h3>BLoC sans Cubit</h3>
+    <p>Events et states <code>sealed</code>, comme aujourd'hui.</p>
+    <p style="margin:0">Le linter officiel <code>bloc_lint</code> a une règle <code>prefer_bloc</code> <span class="tag t-p">source primaire</span> ; son comportement exact reste à confirmer <span class="tag t-n">à tester</span>.</p>
+  </div>
+  <div class="card">
+    <h3>Injection</h3>
+    <p><code>injectable</code> + <code>get_it</code>, avec deux environnements : passerelles réelles au-dessus du cœur, ou faux en mémoire pour les tests.</p>
+    <p style="margin:0">L'assemblage des adaptateurs Rust se fait dans Rust, pas dans <code>get_it</code>.</p>
+  </div>
+</div>
+
+<h2 id="tui">8. La TUI</h2>
+<ul>
+  <li><b>ratatui</b> 0.30 + crossterm, en architecture modèle / message / mise à jour / vue.</li>
+  <li>Elle consomme les mêmes cas d'usage et les mêmes modèles de lecture que Flutter, par appel direct.</li>
+  <li><b>Parité ou sous-ensemble</b> : c'est une étiquette sur les scénarios (<code>@tui</code>) qui en décide, projet par projet. La CI publie le tableau « scénario × cible », qui mesure la parité réelle.</li>
+  <li>Tests de rendu par instantanés (<code>insta</code>) ; attention, ils ne capturent ni couleurs ni styles <span class="tag t-p">source primaire</span>.</li>
+</ul>
+
+<h2 id="tests">9. Une spécification, trois exécutants</h2>
+<p>Les fichiers <code>.feature</code> vivent une seule fois, à la racine du dépôt. Chaque cible les exécute avec son outil.</p>
+
+<figure>
+  <div class="scroll">
+  <svg viewBox="0 0 900 260" role="img" aria-label="Un dossier de spécifications lu par trois exécutants">
+    <rect class="box" x="20" y="100" width="200" height="60" rx="8"/>
+    <text class="ttl" x="120" y="126" text-anchor="middle">features/</text>
+    <text class="small" x="120" y="146" text-anchor="middle">source unique</text>
+
+    <path class="ar" d="M220 115 L560 42"/>
+    <path class="ar" d="M220 130 H560"/>
+    <path class="ar" d="M220 145 L290 212"/>
+    <path class="ar" d="M510 220 H560"/>
+    <text class="small" x="390" y="68" text-anchor="middle">lecture directe</text>
+
+    <rect class="box rust" x="560" y="15" width="320" height="54" rx="8"/>
+    <text x="720" y="38" text-anchor="middle">cucumber-rs · @core</text>
+    <text class="small" x="720" y="56" text-anchor="middle">cœur, adaptateurs en mémoire</text>
+
+    <rect class="box rust" x="560" y="103" width="320" height="54" rx="8"/>
+    <text x="720" y="126" text-anchor="middle">cucumber-rs · @tui</text>
+    <text class="small" x="720" y="144" text-anchor="middle">modèle TUI + terminal de test</text>
+
+    <rect class="box" x="290" y="193" width="220" height="54" rx="8"/>
+    <text x="400" y="216" text-anchor="middle">sync_features</text>
+    <text class="small" x="400" y="234" text-anchor="middle">copie vérifiée en CI</text>
+
+    <rect class="box dart" x="560" y="193" width="320" height="54" rx="8"/>
+    <text x="720" y="216" text-anchor="middle">bdd_widget_test · @gui</text>
+    <text class="small" x="720" y="234" text-anchor="middle">tests de widgets Flutter</text>
+  </svg>
+  </div>
+  <figcaption>Pourquoi une copie côté Flutter : <code>bdd_widget_test</code> génère ses tests à côté des <code>.feature</code> et ne lit que les fichiers du paquet <span class="tag t-p">source primaire</span>. La CI échoue si la copie s'écarte de la source.</figcaption>
+</figure>
+
+<h3>Un dialecte commun à respecter</h3>
+<p>Les deux outils ne lisent pas tout à fait le même Gherkin. Dans les fichiers partagés :</p>
+<ul>
+  <li>un seul bloc <code>Feature:</code> par fichier, pas de <i>doc strings</i>, pas d'étiquette contenant un espace <span class="tag t-p">source primaire</span> ;</li>
+  <li>paramètres écrits en clair (<code>"texte"</code>, nombres nus) avec l'option <code>literalParameters</code> de <code>bdd_widget_test</code> <span class="tag t-p">source primaire</span> ;</li>
+  <li>étapes formulées au niveau métier, pour avoir un sens devant un écran comme devant un terminal.</li>
+</ul>
+
+<h3>La double boucle, sur trois étages</h3>
+<ol class="steps">
+  <li class="red">Écrire le scénario. Il échoue au niveau du cœur (<code>@core</code>) : <b>rouge</b>.</li>
+  <li class="inner">Boucle TDD dans <code>domain</code> puis <code>application</code> : test unitaire rouge, code minimal, vert, refactor, linters vierges. Répéter.</li>
+  <li class="green">Le scénario passe au niveau du cœur : <b>vert</b>.</li>
+  <li class="red">Même scénario côté Flutter (<code>@gui</code>) : <b>rouge</b>.</li>
+  <li class="inner">Boucle TDD sur le BLoC (<code>bloc_test</code>) puis sur les widgets.</li>
+  <li class="green">Scénario Flutter <b>vert</b>. Même cycle pour la TUI si elle est concernée.</li>
+  <li>Si le scénario est marqué <code>@e2e</code> : exécution avec le vrai cœur à travers le pont.</li>
+</ol>
+<p>Les tests de widgets tournent contre des faux écrits en Dart, pour rester rapides. Le risque qu'ils divergent du cœur est couvert par les scénarios <code>@core</code>, qui prouvent le comportement, et par un petit lot <code>@e2e</code> qui traverse réellement le pont <span class="tag t-j">jugement</span>.</p>
+
+<h2 id="design">10. Design system</h2>
+<p>Les jetons de design sont décrits une fois, au format standard DTCG (stable depuis octobre 2025 <span class="tag t-p">source primaire</span>), puis générés pour chaque cible.</p>
+<div class="pipe">
+  <div><b>Source</b>fichiers JSON de jetons</div>
+  <div><b>Flutter</b>extensions de thème Dart</div>
+  <div><b>Web public</b>variables CSS</div>
+  <div><b>TUI</b>palette ratatui</div>
+</div>
+<ul>
+  <li>Outil : Style Dictionary 5, avec deux formats à écrire soi-même (Dart et Rust). Aucun générateur vers ratatui n'existe <span class="tag t-n">à tester</span>.</li>
+  <li>Dans le terminal, les couleurs se dégradent de 16 millions à 256 puis à 16 ; espacement et typographie n'ont pas d'équivalent.</li>
+  <li>Atomic design : atomes, molécules et organismes dans un paquet <code>design_system</code> sans dépendance au cœur ; chacun a son cas d'usage Widgetbook et son test visuel.</li>
+  <li>Widgetbook 3.25 ; la version 4 est en bêta. <code>golden_toolkit</code> est abandonné, <code>alchemist</code> le remplace <span class="tag t-p">source primaire</span>.</li>
+</ul>
+
+<h2 id="ci">11. Intégration continue et distribution</h2>
+<div class="pipe">
+  <div><b>Rust</b>format, clippy, tests, scénarios cœur et TUI, couverture, licences</div>
+  <div><b>WASM</b>cœur compilé pour le navigateur</div>
+  <div><b>Flutter</b>format, analyse, lint BLoC, tests, scénarios, visuels</div>
+  <div><b>Dérive</b>code généré, copie des features, jetons : rien ne doit différer</div>
+  <div><b>Bout en bout</b>application Linux avec le vrai cœur</div>
+  <div><b>Builds</b>Windows, Linux, macOS, Android, iOS, web</div>
+</div>
+<p>Une modification ne fusionne que si tout est vert, sans avertissement de linter, sans scénario en cours et sans dérive de code généré.</p>
+<ul>
+  <li>Compilation du Rust pendant le build Flutter : mécanisme <i>Native Assets</i> de Dart, conseillé par la doc du pont pour les nouveaux projets ; l'ancien outil cargokit n'est plus maintenu en amont <span class="tag t-p">source primaire</span>.</li>
+  <li>Runners GitHub nécessaires : Linux, Windows et macOS (obligatoire pour iOS et macOS).</li>
+  <li>Distribution : Fastforge et <code>msix</code> pour le desktop, fastlane pour les magasins mobiles, <code>dist</code> pour les binaires de la TUI. Plusieurs détails d'empaquetage restent à vérifier <span class="tag t-n">à tester</span>.</li>
+</ul>
+
+<h2 id="alternatives">12. Alternatives écartées</h2>
+<div class="tablewrap"><table>
+  <tr><th>Alternative</th><th>Pourquoi pas</th></tr>
+  <tr><td>Tauri 2</td><td>Interface en technologies web : vos compétences Flutter seraient perdues. Mobile encore incomplet de l'aveu de l'équipe.</td></tr>
+  <tr><td>Dioxus</td><td>Tout en Rust, mais avant la 1.0 ; mobile par WebView.</td></tr>
+  <tr><td>Slint</td><td>Web limité à des démonstrations.</td></tr>
+  <tr><td>Compose Multiplatform</td><td>Le concurrent le plus mûr, mais web en bêta, et il ne règle ni la TUI ni le cœur Rust.</td></tr>
+  <tr><td>egui, Makepad, GPUI</td><td>Adaptés à des outils ou au desktop seul.</td></tr>
+  <tr><td>Flutter seul, sans Rust</td><td>Viable sans TUI. C'est la TUI Rust et le site public qui justifient un cœur hors Dart.</td></tr>
+</table></div>
+<p>À garder en tête : le cabinet Very Good Ventures juge un cœur Rust excessif pour une application qui se résume à une API et une base locale. Sans TUI ni site public à alimenter, cet avis s'appliquerait.</p>
+
+<h2 id="risques">13. Risques et essais préalables</h2>
+<p>Rien de cette étude n'a été compilé. Six prototypes courts doivent confirmer les points fragiles. À mener en premier : S1 et S4. S2, S3 et S5 conditionnent le web applicatif.</p>
+<div class="tablewrap"><table>
+  <tr><th>#</th><th>Essai</th><th>Si échec</th></tr>
+  <tr><td>S1</td><td>Le pont dans le monorepo, avec Native Assets et Flutter 3.50, sur Linux, Android et Apple</td><td>Revenir à cargokit</td></tr>
+  <tr><td>S2</td><td>Cœur en WASM avec SQLite persistant ; rechargement de page ; second onglet</td><td>Plan B ou C de stockage</td></tr>
+  <tr><td>S3</td><td>En-têtes d'isolation sur l'hébergeur visé, connexion par redirection, sur Safari</td><td>Mode mono-fil du pont, moins réactif</td></tr>
+  <tr><td>S4</td><td>Un même <code>.feature</code> exécuté par cucumber-rs et <code>bdd_widget_test</code></td><td>Dialecte plus restreint</td></tr>
+  <tr><td>S5</td><td>Flux du pont sur le web, en charge</td><td>Requêtes ponctuelles + notification</td></tr>
+  <tr><td>S6</td><td>Génération des jetons vers ratatui</td><td>Générateur maison</td></tr>
+</table></div>
+
+<h3>Risques durables</h3>
+<ul>
+  <li><b>Mainteneur unique du pont.</b> Parade : crate <code>bridge</code> mince. Signal à noter : RustDesk, son plus gros utilisateur public, est resté en version 1 <span class="tag t-p">source primaire</span>.</li>
+  <li><b>Chaîne de build plus longue</b> : deux langages, code généré, toolchain nightly pour le web. Parade : caches et contrôles de dérive.</li>
+  <li><b>Faux Dart qui divergent du cœur.</b> Parade : scénarios <code>@core</code> et lot <code>@e2e</code>.</li>
+  <li><b>Briques jeunes</b> : Leptos, Jaspr, <code>native_toolchain_rust</code>, <code>import_rules</code>. Parade : chacune est isolée derrière une frontière et remplaçable.</li>
+</ul>
+
+<h2 id="route">14. Feuille de route</h2>
+<ol class="steps">
+  <li>Squelette du dépôt : workspaces Rust et Dart, linters, CI minimale.</li>
+  <li>Essais S1 (pont) et S4 (spécification partagée).</li>
+  <li>Première tranche verticale dans le cœur seul, pilotée par un scénario.</li>
+  <li>Stockage SQLite natif.</li>
+  <li>TUI : le même scénario dans le terminal.</li>
+  <li>Flutter : pont, première tranche FSD, BLoC, scénario d'écran.</li>
+  <li>Design system : jetons, premiers atomes, Widgetbook ; essai S6.</li>
+  <li>Synchronisation, avec scénarios de conflit.</li>
+  <li>Web applicatif : essais S2, S3, S5, puis choix du plan de stockage.</li>
+  <li>Site public.</li>
+  <li>Distribution sur chaque cible.</li>
+</ol>
+
+<h2 id="limites">15. Limites de l'étude</h2>
+<ul>
+  <li>La recherche principale a vérifié 25 affirmations par vote contradictoire (toutes confirmées). Elles portent sur le pont, Flutter Web, PowerSync, Loro et Crux.</li>
+  <li>Tout le reste (TUI, Gherkin partagé, jetons, CI, distribution, retours d'expérience, alternatives, stockage web) vient de recherches complémentaires lues sur sources officielles, sans contre-vérification.</li>
+  <li>Trois choix sont des jugements et non des faits : garder la présentation en Dart, préférer Leptos, écrire la synchronisation soi-même.</li>
+  <li>Les versions citées sont celles du 16 novembre 2026 ; plusieurs bibliothèques évoluent vite.</li>
+</ul>
+
+<footer>
+  Détails, règles normatives, versions et sources complètes : <code>ARCHITECTURE-AGENT.md</code>, dans le même dossier.
+</footer>
+
+</main>
+</body>
+</html>
