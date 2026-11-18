@@ -128,7 +128,14 @@ Deux options étaient à comparer.
 - Native Assets : `hooks` 2.2.0, `native_toolchain_rust` 1.1.1 (éditeur tiers, mainteneur unique), `flutter_rust_bridge_hooks` 2.13.0 `[P]`. Exige `crate-type = ["staticlib", "cdylib"]` et un `rust-toolchain.toml` qui épingle une version concrète et liste les cibles `[P]`.
 - Les hooks couvrent Android, iOS, Linux, macOS, Windows, **pas le web** `[P]`.
 
-**Décision.** Nouveau projet : `native-assets` `[J]`. Repli : `cargokit` si l'essai S1 échoue dans un Cargo workspace (cas non vérifié `[NV]`).
+**Décision.** `native-assets`, confirmé par l'essai S1 `[E]` (FRB 2.13.0, Flutter 3.50.0, Rust 1.100.0 ; Linux desktop et émulateur Android x86_64 ; `adr/S1-pont-frb.md`). Le repli `cargokit` n'a pas été essayé. Cibles Apple et appareil ARM physique : `[NV]`.
+
+Constats de S1 `[E]` :
+- Le problème du répertoire `target` partagé (issue #2460) ne se produit pas avec `native-assets` : le hook fixe lui-même son `--target-dir`. `CARGO_TARGET_DIR` pointant sur le `target` du workspace fonctionne aussi.
+- Une modification dans un crate dépendance de chemin est bien détectée par le build incrémental.
+- Android : une bibliothèque par ABI, compilée par le hook, **sans `cargo-ndk`**.
+- Le hook compile toujours en `release`, même pour `flutter test` et `flutter build --debug` ; réglable dans `hook/build.dart`.
+- Mesures (Linux x86_64) : premier build + test 25 s à froid, relance après modification du Rust 4,5 s, premier APK debug (3 ABI) 196 s ; bibliothèque Linux 1,08 Mio, 718 Kio après `strip`.
 
 ### 3.5 ADR-05 — Web applicatif : Flutter Web + cœur Rust en WASM
 
@@ -347,6 +354,9 @@ pub fn watch_notes(query: NoteListQueryDto, sink: StreamSink<NoteListViewDto>)
 ```
 
 - DTO : structures plates, types primitifs, `Vec`, `Option`, enums simples. Identifiants en `String`.
+- **Enums à champs** `[E]` : ils exigent `freezed` côté Dart. Par défaut, s'en tenir au motif validé par S1 : une structure portant une enum sans champ (`BridgeError { kind, message }`). Adopter `freezed` est une décision de l'utilisateur.
+- **Entiers** `[E]` : `u64` devient `BigInt` en Dart. Utiliser `u32` ou `i64` dans les DTO.
+- Une erreur Rust arrive en Dart comme une exception typée implémentant `FrbException` `[E]`.
 - `BridgeError` : enum fermée, codes stables, jamais de message destiné à l'utilisateur final (la traduction se fait en Dart).
 - Les flux FRB vont de Rust vers Dart uniquement, et la doc les signale potentiellement instables sur le web `[V]`. Chaque flux DOIT avoir un test d'intégration web, et le cœur DEVRAIT offrir une requête ponctuelle équivalente (`get_notes`) utilisable en repli.
 - Lints du crate : `#![deny(clippy::unwrap_used, clippy::expect_used, clippy::panic)]`.
@@ -381,15 +391,19 @@ targets = [ "aarch64-linux-android", "armv7-linux-androideabi", "x86_64-linux-an
             "wasm32-unknown-unknown" ]
 ```
 
-Chaque crate porte `[lints] workspace = true`. Dans `bridge`, le module généré par FRB reçoit un `#![allow(unsafe_code, clippy::unwrap_used)]` ciblé ; le code écrit à la main reste soumis aux interdictions.
+Chaque crate porte `[lints] workspace = true`. Dans `bridge`, le module généré par FRB reçoit une exemption ciblée, sous la forme validée par S1 `[E]` : `#[allow(clippy::unwrap_used, clippy::expect_used, clippy::panic, clippy::all)] mod frb_generated;` (plus `unsafe_code` si nécessaire) ; le code écrit à la main reste soumis aux interdictions.
 
 Toolchain du build web : `rust-toolchain.toml` reste sur la version stable ; le job `wasm` passe une nightly datée par `--wasm-pack-rustup-toolchain` `[P]`.
 
-Intégration de FRB à un workspace existant `[P]` :
+Intégration de FRB à un workspace existant, déroulée par S1 `[E]` :
 1. `flutter_rust_bridge_codegen integrate --rust-crate-dir <chemin>` depuis le paquet Flutter concerné (le codegen se lance depuis le sous-paquet dans un pub workspace `[P]`).
 2. Supprimer le `Cargo.lock` généré dans le crate.
 3. Ajouter le crate aux `members` de la racine (étape manuelle).
-4. Le répertoire `target` partagé peut empêcher FRB de trouver la bibliothèque compilée ; la doc renvoie à l'issue #2460 pour le contournement.
+4. Passer le `[package]` du crate en `*.workspace = true`. `integrate` génère un crate autonome, avec son propre `rust-toolchain.toml` sur un autre canal : le remplacer.
+5. **`rust-toolchain.toml` DOIT être présent dans le dossier du crate du pont** : `native_toolchain_rust` le lit là, sans remonter aux parents, et refuse un canal non concret (`stable`). Garder un fichier unique à la racine et un lien symbolique dans `crates/bridge/` ; sous Windows, une copie vérifiée par la CI.
+6. `integrate` remplace `lib/main.dart` et ajoute un test d'intégration d'exemple : à réécrire.
+7. Épingler une version concrète installe une toolchain distincte de `stable` : la prévoir dans le cache de la CI.
+8. Avec le backend `cargokit`, le répertoire `target` partagé peut empêcher FRB de trouver la bibliothèque ; la doc renvoie à l'issue #2460 `[P]`.
 
 ---
 
@@ -772,7 +786,7 @@ Actions `[P]` : `subosito/flutter-action` v2.23.0, `dtolnay/rust-toolchain`, `Sw
 
 Références à lire, sans copier : la CI de FRB (`flutter-actions/setup-flutter`, émulateur Android, runners macOS Intel et arm) et celle de RustDesk (matrice complète, cargo-ndk, workflow séparé pour le codegen) `[P]`. Celle d'AppFlowy est datée `[P]`. La page CI de la doc FRB porte le bandeau V1 : obsolète `[P]`.
 
-Compilation croisée : `cargo-ndk` 4.1.2 pour Android ; le crate pour XCFramework s'appelle `xcframework` 0.2.1 (**`cargo-xcframework` n'existe pas** sur crates.io) ; `cargo-zigbuild` 0.24.1 pour la TUI ; `cross` n'a pas publié depuis 2023 (installer depuis git ou préférer zigbuild) `[P]`. Avec le backend native-assets, Android et iOS sont compilés par le hook : `cargo-ndk` et `xcframework` ne servent qu'en repli `[J]`.
+Compilation croisée : `cargo-ndk` 4.1.2 pour Android ; le crate pour XCFramework s'appelle `xcframework` 0.2.1 (**`cargo-xcframework` n'existe pas** sur crates.io) ; `cargo-zigbuild` 0.24.1 pour la TUI ; `cross` n'a pas publié depuis 2023 (installer depuis git ou préférer zigbuild) `[P]`. Avec le backend native-assets, Android est compilé par le hook sans `cargo-ndk` `[E]` ; iOS devrait l'être aussi `[NV]`. `cargo-ndk` et `xcframework` ne servent qu'en repli.
 
 ### 11.5 Gates de fusion
 
@@ -815,7 +829,7 @@ Chaque essai est un prototype jetable, borné dans le temps, avec un critère de
 
 | # | Essai | Critère de réussite | Si échec |
 |---|---|---|---|
-| **S1** | FRB 2.13.0, backend `native-assets`, crate `bridge` dans le Cargo workspace, Flutter 3.50 | Une fonction async et un flux appelés depuis Flutter sur Linux, Android et un appareil Apple | Backend `cargokit` ; ou attendre FRB 2.14. La CI de FRB cible Flutter 3.47 : compatibilité 3.50 `[NV]` |
+| **S1** ✅ | **Réussi le 2026-11-18 sur Linux et émulateur Android** (`adr/S1-pont-frb.md`) ; Apple non testé, à couvrir par un runner macOS. Énoncé d'origine : FRB 2.13.0, backend `native-assets`, crate `bridge` dans le Cargo workspace, Flutter 3.50 | Une fonction async et un flux appelés depuis Flutter sur Linux, Android et un appareil Apple | Backend `cargokit` ; ou attendre FRB 2.14. La CI de FRB cible Flutter 3.47 : compatibilité 3.50 `[NV]` |
 | **S2** | Cœur en WASM : `build-web`, `rusqlite` + VFS `sahpool`, écriture, rechargement de page, relecture ; second onglet | Donnée relue après rechargement sur Chrome, Firefox et Safari ; second onglet détecté proprement | Plan B ou C (ADR-07) |
 | **S3** | En-têtes `COOP: same-origin` + `COEP: require-corp` sur l'hébergeur visé ; connexion par redirection | `crossOriginIsolated` vrai sur Safari ; connexion fonctionnelle | Mode sans en-têtes (`default_dart_async: false`), avec perte de réactivité |
 | **S4** ✅ | **Réussi le 2026-11-18** (`adr/S4-gherkin-partage.md`), dialecte plus étroit que prévu : voir §8. Énoncé d'origine : un `.feature` partagé : cucumber-rs + `bdd_widget_test` avec `literalParameters`, `# language: fr`, une table, un `Scenario Outline`, une étiquette d'exclusion | Les deux exécutants passent sur le même fichier ; `sync_features --check` détecte un écart | Dialecte plus restreint, ou `gherkart` |
@@ -900,7 +914,7 @@ Chaque étape se termine par les gates vertes et un commit.
 
 - La recherche principale a extrait 120 affirmations de 27 sources et en a vérifié 25 par vote contradictoire (25 confirmées, 0 réfutée). Elles couvrent FRB, Crux, UniFFI-Dart, PowerSync, Loro et Flutter Web. **Tout le reste** (TUI, monorepo, Gherkin partagé, tokens, CI, empaquetage, retours d'expérience, alternatives, persistance web) vient de cinq recherches complémentaires lues sur sources primaires par un seul agent chacune, sans contre-vérification.
 - Les sources sont surtout des documentations d'éditeurs : fiables sur ce que fait le produit, auto-déclaratives sur sa maturité.
-- À l'origine, aucun assemblage n'avait été compilé. Depuis, les essais S4 et S6 ont été menés (2026-11-18, Linux, prototypes jetables dans `spikes/`) ; leurs ADR font foi pour le détail. S1, S2, S3 et S5 restent à faire : le pont, le web applicatif et le stockage dans le navigateur ne sont toujours pas validés par l'expérience.
+- À l'origine, aucun assemblage n'avait été compilé. Depuis, les essais S1, S4 et S6 ont été menés (2026-11-18, Linux, prototypes jetables dans `spikes/`) ; leurs ADR font foi pour le détail. Le pont est validé sur Linux et Android, pas sur les cibles Apple. S2, S3 et S5 restent à faire : le web applicatif et le stockage dans le navigateur ne sont toujours pas validés par l'expérience.
 - Les arbitrages (a)/(b), Leptos/Jaspr/Astro et moteur de synchronisation maison sont des jugements, étayés mais non démontrés.
 
 ---

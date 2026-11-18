@@ -521,7 +521,7 @@ footer{margin-top:56px;color:var(--muted);font-size:.9rem;border-top:1px solid v
 </div>
 <p>Une modification ne fusionne que si tout est vert, sans avertissement de linter, sans scénario en cours et sans dérive de code généré.</p>
 <ul>
-  <li>Compilation du Rust pendant le build Flutter : mécanisme <i>Native Assets</i> de Dart, conseillé par la doc du pont pour les nouveaux projets ; l'ancien outil cargokit n'est plus maintenu en amont <span class="tag t-p">source primaire</span>.</li>
+  <li>Compilation du Rust pendant le build Flutter : mécanisme <i>Native Assets</i> de Dart, conseillé par la doc du pont pour les nouveaux projets ; l'ancien outil cargokit n'est plus maintenu en amont <span class="tag t-p">source primaire</span>. Validé sur Linux et Android : 25 s pour un premier build, 4,5 s après une modification du Rust <span class="tag t-v">essai réussi</span>.</li>
   <li>Runners GitHub nécessaires : Linux, Windows et macOS (obligatoire pour iOS et macOS).</li>
   <li>Distribution : Fastforge et <code>msix</code> pour le desktop, fastlane pour les magasins mobiles, <code>dist</code> pour les binaires de la TUI. Plusieurs détails d'empaquetage restent à vérifier <span class="tag t-n">à tester</span>.</li>
 </ul>
@@ -539,10 +539,10 @@ footer{margin-top:56px;color:var(--muted);font-size:.9rem;border-top:1px solid v
 <p>À garder en tête : le cabinet Very Good Ventures juge un cœur Rust excessif pour une application qui se résume à une API et une base locale. Sans TUI ni site public à alimenter, cet avis s'appliquerait.</p>
 
 <h2 id="risques">13. Risques et essais préalables</h2>
-<p>Six prototypes courts doivent confirmer les points fragiles. Deux sont faits (S4 et S6, le 18 novembre 2026). S1 est le prochain ; S2, S3 et S5 conditionnent le web applicatif.</p>
+<p>Six prototypes courts doivent confirmer les points fragiles. Trois sont faits (S1, S4 et S6, le 18 novembre 2026). Restent S2, S3 et S5, qui conditionnent le web applicatif.</p>
 <div class="tablewrap"><table>
   <tr><th>#</th><th>Essai</th><th>Si échec</th></tr>
-  <tr><td>S1</td><td>Le pont dans le monorepo, avec Native Assets et Flutter 3.50, sur Linux, Android et Apple</td><td>Revenir à cargokit</td></tr>
+  <tr><td>S1 ✅</td><td>Le pont dans le monorepo, avec Native Assets et Flutter 3.50 : <b>réussi</b> sur Linux et Android ; cibles Apple non testées</td><td>—</td></tr>
   <tr><td>S2</td><td>Cœur en WASM avec SQLite persistant ; rechargement de page ; second onglet</td><td>Plan B ou C de stockage</td></tr>
   <tr><td>S3</td><td>En-têtes d'isolation sur l'hébergeur visé, connexion par redirection, sur Safari</td><td>Mode mono-fil du pont, moins réactif</td></tr>
   <tr><td>S4 ✅</td><td>Un même <code>.feature</code> exécuté par cucumber-rs et <code>bdd_widget_test</code> : <b>réussi</b>, avec un dialecte plus étroit que prévu</td><td>—</td></tr>
@@ -576,7 +576,7 @@ footer{margin-top:56px;color:var(--muted);font-size:.9rem;border-top:1px solid v
 <h2 id="limites">15. Limites de l'étude</h2>
 <ul>
   <li>La recherche principale a vérifié 25 affirmations par vote contradictoire (toutes confirmées). Elles portent sur le pont, Flutter Web, PowerSync, Loro et Crux.</li>
-  <li>Deux essais ont depuis été menés et réussis (spécification Gherkin partagée, jetons vers ratatui). Le pont, le web applicatif et le stockage dans le navigateur ne sont pas encore validés par l'expérience.</li>
+  <li>Trois essais ont depuis été menés et réussis (pont sur Linux et Android, spécification Gherkin partagée, jetons vers ratatui). Les cibles Apple, le web applicatif et le stockage dans le navigateur ne sont pas encore validés par l'expérience.</li>
   <li>Tout le reste (TUI, Gherkin partagé, jetons, CI, distribution, retours d'expérience, alternatives, stockage web) vient de recherches complémentaires lues sur sources officielles, sans contre-vérification.</li>
   <li>Trois choix sont des jugements et non des faits : garder la présentation en Dart, préférer Leptos, écrire la synchronisation soi-même.</li>
   <li>Les versions citées sont celles du 16 novembre 2026 ; plusieurs bibliothèques évoluent vite.</li>
