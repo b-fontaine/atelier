@@ -1,0 +1,29 @@
+/* GÉNÉRÉ par Style Dictionary depuis tokens/*.tokens.json — NE PAS ÉDITER. */
+:root {
+  --color-blue-100: #dbeafe;
+  --color-blue-500: #3b82f6;
+  --color-blue-700: #1d4ed8;
+  --color-red-400: #f87171;
+  --color-red-500: #ef4444;
+  --color-gray-50: #f8fafc;
+  --color-gray-100: #f1f5f9;
+  --color-gray-800: #1e293b;
+  --color-gray-900: #0f172a;
+  --color-blue-dark-400: #60a5fa;
+}
+
+:root {
+  --surface: #f8fafc;
+  --texte: #0f172a;
+  --accent: #1d4ed8;
+  --danger: #ef4444;
+  --emphasis-weight: 700;
+}
+
+[data-theme='dark'] {
+  --surface: #0f172a;
+  --texte: #f8fafc;
+  --accent: #60a5fa;
+  --danger: #f87171;
+  --emphasis-weight: 700;
+}
