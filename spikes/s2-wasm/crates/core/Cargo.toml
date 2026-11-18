@@ -1,0 +1,27 @@
+[package]
+name = "s2_core"
+edition.workspace = true
+version.workspace = true
+publish.workspace = true
+
+[dependencies]
+futures-timer = "3"
+futures-core = "0.3"
+async-stream = "0.3"
+# Même adaptateur partout : `bundled` compile SQLite en natif ; sur
+# wasm32-unknown-unknown, le feature par défaut `ffi-sqlite-wasm-rs` remplace
+# libsqlite3-sys par sqlite-wasm-rs.
+rusqlite = { version = "=0.43.0", features = ["bundled"] }
+
+[lints]
+workspace = true
+
+[target.'cfg(all(target_family = "wasm", target_os = "unknown"))'.dependencies]
+# Sur wasm32-unknown-unknown, futures-timer exige ce feature (setTimeout via gloo-timers).
+futures-timer = { version = "3", features = ["wasm-bindgen"] }
+# VFS persistant OPFS (sahpool) et accès aux API du navigateur, web uniquement.
+sqlite-wasm-rs = { version = "=0.6.3", features = ["wasm-bindgen"] }
+sqlite-wasm-vfs = { version = "=0.3.0", features = ["sahpool"] }
+js-sys = "0.3"
+wasm-bindgen = "0.2"
+wasm-bindgen-futures = "0.4"
