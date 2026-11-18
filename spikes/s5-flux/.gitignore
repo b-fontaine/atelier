@@ -1,0 +1,6 @@
+target/
+.omc/
+build/
+app/web/pkg/
+harness/node_modules/
+app/pubspec_overrides.yaml

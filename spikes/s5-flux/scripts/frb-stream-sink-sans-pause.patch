@@ -1,0 +1,73 @@
+--- a/lib/src/stream/stream_sink.dart	2026-11-18 11:03:23.155735358 +0100
++++ b/lib/src/stream/stream_sink.dart	2026-11-18 11:03:23.196452527 +0100
+@@ -40,21 +40,31 @@
+   final portName = ExecuteStreamPortGenerator.create('RustStreamSink');
+   final receivePort = broadcastPort(portName);
+ 
+-  final Stream<T> rawStream = () async* {
++  // Correctif S5 : écouter le port sans jamais le mettre en pause. Sur le web, mettre en
++  // pause un abonnement à un événement DOM retire l'écouteur et perd les messages du
++  // BroadcastChannel ; le contrôleur met en tampon à la place.
++  late final StreamController<T> controller;
++  late final StreamSubscription<dynamic> portSub;
++  void finish() {
++    portSub.cancel();
++    receivePort.close();
++    controller.close();
++  }
++
++  controller = StreamController<T>(onCancel: () {
++    portSub.cancel();
++    receivePort.close();
++  });
++  portSub = receivePort.listen((raw) {
+     try {
+-      await for (final raw in receivePort) {
+-        try {
+-          yield codec.decodeObject(raw);
+-        } on CloseStreamException {
+-          break;
+-        }
+-      }
+-    } finally {
+-      receivePort.close();
++      controller.add(codec.decodeObject(raw));
++    } on CloseStreamException {
++      finish();
++    } catch (e, s) {
++      controller.addError(e, s);
+     }
+-  }();
+-
+-  final stream = rawStream.listenAndBuffer();
++  });
++  final stream = controller.stream;
+ 
+   return _State(receivePort, stream);
+ }
+--- a/lib/src/utils/port_generator.dart	2026-11-18 11:20:10.538349533 +0100
++++ b/lib/src/utils/port_generator.dart	2026-11-18 11:25:37.192225856 +0100
+@@ -1,5 +1,14 @@
++import 'dart:math';
++
+ import 'package:meta/meta.dart';
+ 
++// Correctif S5 : préfixe aléatoire par contexte (page, redémarrage à chaud). Sur le web, les
++// noms servent de BroadcastChannel, partagés par toute l'origine : sans préfixe, deux onglets
++// (ou une page et celle qui la remplace) reçoivent les messages l'un de l'autre.
++final String _session = [
++  for (var i = 0; i < 2; i++) Random.secure().nextInt(0x7fffffff).toRadixString(36),
++].join();
++
+ /// {@macro flutter_rust_bridge.internal}
+ @internal
+ class ExecuteStreamPortGenerator {
+@@ -12,7 +21,7 @@
+       (value) => value + 1,
+       ifAbsent: () => 0,
+     );
+-    return '__frb_streamsink_${funcName}_$nextIndex';
++    return '__frb_streamsink_${_session}_${funcName}_$nextIndex';
+   }
+ }
+ 

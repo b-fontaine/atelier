@@ -1,0 +1,16 @@
+[package]
+name = "s5_core"
+edition.workspace = true
+version.workspace = true
+publish.workspace = true
+
+[dependencies]
+futures-timer = "3"
+
+# En WASM, futures-timer doit s'appuyer sur setTimeout (gloo-timers) :
+# sans cette fonctionnalité il démarre un fil d'exécution, interdit sur le fil principal du navigateur.
+[target.'cfg(target_arch = "wasm32")'.dependencies]
+futures-timer = { version = "3", features = ["wasm-bindgen"] }
+
+[lints]
+workspace = true

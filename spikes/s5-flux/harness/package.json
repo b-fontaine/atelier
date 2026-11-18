@@ -1,0 +1,9 @@
+{
+  "name": "s5-harness",
+  "private": true,
+  "type": "module",
+  "description": "Harnais Playwright de l'essai S5 (flux FRB sur le web)",
+  "dependencies": {
+    "playwright": "1.65.1"
+  }
+}

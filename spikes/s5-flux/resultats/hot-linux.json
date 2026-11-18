@@ -1,0 +1,68 @@
+{
+  "target": "linux",
+  "etapes": [
+    {
+      "etape": "depart",
+      "at": 1795001194963,
+      "code": "v1",
+      "ids": {
+        "async": 216286000,
+        "worker": 216286001
+      },
+      "recv": {
+        "async": 99,
+        "worker": 99
+      },
+      "rustEmitted": {
+        "async": 99,
+        "worker": 99
+      },
+      "foreign": 0,
+      "disorder": 0,
+      "running": 2
+    },
+    {
+      "etape": "rechargement_a_chaud",
+      "pris_en_compte": true,
+      "at": 1795001198463,
+      "code": "v2",
+      "ids": {
+        "async": 216286000,
+        "worker": 216286001
+      },
+      "recv": {
+        "async": 271,
+        "worker": 272
+      },
+      "rustEmitted": {
+        "async": 271,
+        "worker": 272
+      },
+      "foreign": 0,
+      "disorder": 0,
+      "running": 2
+    },
+    {
+      "etape": "redemarrage_a_chaud",
+      "pris_en_compte": true,
+      "at": 1795001203545,
+      "code": "v2",
+      "ids": {
+        "async": 363347000,
+        "worker": 363347001
+      },
+      "recv": {
+        "async": 222,
+        "worker": 222
+      },
+      "rustEmitted": {
+        "async": 222,
+        "worker": 222
+      },
+      "foreign": 0,
+      "disorder": 0,
+      "running": 2
+    }
+  ],
+  "erreurs": []
+}

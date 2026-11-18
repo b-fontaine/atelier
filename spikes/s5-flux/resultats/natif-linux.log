@@ -1,0 +1,25 @@
+00:00 +0: loading /home/bfontaine/github/atelier/.claude/worktrees/essai-s5-flux-web-05ce34/spikes/s5-flux/app/integration_test/s5_test.dart
+Building Linux application...                                   
+✓ Built build/linux/x64/debug/bundle/s5_app
+00:00 +0: (setUpAll)
+00:00 +0: scénarios S5 (natif)
+S5RESULT {"name":"ping","status":"ok","detail":"ping 10 ms","ms":18}
+S5RESULT {"name":"rafale_async_1000","status":"ok","detail":"1000 reçus dans l'ordre en 119 ms","ms":137}
+S5RESULT {"name":"rafale_worker_1000","status":"ok","detail":"1000 reçus dans l'ordre en 122 ms","ms":123}
+S5RESULT {"name":"rafale_async_10000","status":"ok","detail":"10000 reçus dans l'ordre en 869 ms","ms":879}
+S5RESULT {"name":"rafale_worker_10000","status":"ok","detail":"10000 reçus dans l'ordre en 503 ms","ms":506}
+S5RESULT {"name":"simultanes_4","status":"ok","detail":"4 flux simultanés complets et ordonnés","ms":266}
+S5RESULT {"name":"consommateur_lent_async","status":"ok","detail":"300 reçus dans l'ordre malgré les pauses","ms":109}
+S5RESULT {"name":"consommateur_lent_worker","status":"ok","detail":"300 reçus dans l'ordre malgré les pauses","ms":94}
+S5RESULT {"name":"annulation_async","status":"ok","detail":"arrêt Rust : sendError, 0 émission(s) après l'annulation","ms":1101}
+S5RESULT {"name":"annulation_worker","status":"ok","detail":"arrêt Rust : sendError, 0 émission(s) après l'annulation","ms":1100}
+S5RESULT {"name":"annulation_explicite_async","status":"ok","detail":"arrêt Rust : stopRequested, 0 émission(s) après l'annulation","ms":1106}
+S5RESULT {"name":"annulation_explicite_worker","status":"ok","detail":"arrêt Rust : stopRequested, 0 émission(s) après l'annulation","ms":1106}
+S5RESULT {"name":"reabonnement","status":"ok","detail":"100/100 puis 50/50 après réabonnement ; ancien émetteur arrêté au moment du réabonnement","ms":415}
+S5RESULT {"name":"erreur_add_error","status":"echec","detail":"ordre 0,1,2,E","ms":9}
+S5RESULT {"name":"erreur_return_err","status":"echec","detail":"Err renvoyé par la fonction : flux fermé normalement, erreur hors du flux : erreur asynchrone non interceptée (BridgeError)","ms":203}
+S5RESULT {"name":"repli_requete_notification","status":"ok","detail":"1000/1000 via 10 relectures pour 1001 notifications ; 0 observateur restant","ms":61}
+S5RESULT {"name":"emetteurs_restants","status":"info","detail":"0 émetteur(s) Rust encore en cours en fin de série","ms":0}
+S5DONE
+00:07 +1: (tearDownAll)
+00:07 +1: All tests passed!

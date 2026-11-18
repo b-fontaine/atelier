@@ -1,0 +1,662 @@
+{
+  "tag": "web-chrome-sans-entetes-sans-entetes",
+  "browser": "chrome",
+  "mode": "sans-entetes",
+  "headers": false,
+  "scenarios": [
+    {
+      "name": "ping",
+      "status": "ok",
+      "detail": "5/5 ok — ping 10 ms"
+    },
+    {
+      "name": "rafale_async_1000",
+      "status": "ok",
+      "detail": "5/5 ok — 1000 reçus dans l'ordre en 41 ms | 1000 reçus dans l'ordre en 43 ms | 1000 reçus dans l'ordre en 42 ms"
+    },
+    {
+      "name": "rafale_worker_1000",
+      "status": "ok",
+      "detail": "5/5 ok — 1000 reçus dans l'ordre en 30 ms"
+    },
+    {
+      "name": "rafale_async_10000",
+      "status": "ok",
+      "detail": "5/5 ok — 10000 reçus dans l'ordre en 195 ms | 10000 reçus dans l'ordre en 156 ms | 10000 reçus dans l'ordre en 183 ms"
+    },
+    {
+      "name": "rafale_worker_10000",
+      "status": "ok",
+      "detail": "5/5 ok — 10000 reçus dans l'ordre en 197 ms | 10000 reçus dans l'ordre en 149 ms | 10000 reçus dans l'ordre en 183 ms"
+    },
+    {
+      "name": "simultanes_4",
+      "status": "ok",
+      "detail": "5/5 ok — 4 flux simultanés complets et ordonnés (4e flux async : pas de worker sans en-têtes)"
+    },
+    {
+      "name": "consommateur_lent_async",
+      "status": "echec",
+      "detail": "0/5 ok, 5 échec(s) — blocage (délai dépassé)"
+    },
+    {
+      "name": "consommateur_lent_worker",
+      "status": "echec",
+      "detail": "0/5 ok, 5 échec(s) — blocage (délai dépassé)"
+    },
+    {
+      "name": "annulation_async",
+      "status": "echec",
+      "detail": "0/5 ok, 5 échec(s) — fuite : l'émetteur Rust tourne encore 1 s après l'annulation (186 émissions de plus ; stop_stream → stopRequested) | fuite : l'émetteur Rust tourne encore 1 s après l'annulation (185 émissions de plus ; stop_stream → stopRequested) | fuite : l'émetteur Rust tourne encore 1 s après l'annulation (192 émissions de plus ; stop_stream → stopRequested)"
+    },
+    {
+      "name": "annulation_worker",
+      "status": "nt",
+      "detail": "0/5 ok — pas de worker sans en-têtes : bloquerait le fil principal"
+    },
+    {
+      "name": "annulation_explicite_async",
+      "status": "ok",
+      "detail": "5/5 ok — arrêt Rust : stopRequested, 0 émission(s) après l'annulation"
+    },
+    {
+      "name": "annulation_explicite_worker",
+      "status": "nt",
+      "detail": "0/5 ok — pas de worker sans en-têtes : bloquerait le fil principal"
+    },
+    {
+      "name": "reabonnement",
+      "status": "ok",
+      "detail": "5/5 ok — 100/100 puis 50/50 après réabonnement ; ancien émetteur encore en cours (fuite) au moment du réabonnement"
+    },
+    {
+      "name": "erreur_add_error",
+      "status": "echec",
+      "detail": "0/5 ok, 5 échec(s) — ordre 0,1,2,E"
+    },
+    {
+      "name": "erreur_return_err",
+      "status": "echec",
+      "detail": "0/5 ok, 5 échec(s) — Err renvoyé par la fonction : flux fermé normalement, erreur hors du flux : erreur asynchrone non interceptée (minified:ho)"
+    },
+    {
+      "name": "repli_requete_notification",
+      "status": "ok",
+      "detail": "5/5 ok — 1000/1000 via 10 relectures pour 1001 notifications ; 0 observateur restant"
+    },
+    {
+      "name": "emetteurs_restants",
+      "status": "info",
+      "detail": "0/5 ok — 0 émetteur(s) Rust encore en cours en fin de série"
+    }
+  ],
+  "externes": [
+    {
+      "name": "rechargement_page_live",
+      "status": "ok",
+      "detail": "avant : {\"async\":69} ; après rechargement : reçus {\"async\":145}, étrangers 0, désordre 0"
+    },
+    {
+      "name": "rechargement_page_en_cours_de_serie",
+      "status": "ok",
+      "detail": "rechargé après 3 scénarios ; série relancée complète ; échecs [\"consommateur_lent_async\",\"consommateur_lent_worker\",\"annulation_async\",\"erreur_add_error\",\"erreur_return_err\"] (série A : [\"consommateur_lent_async\",\"consommateur_lent_worker\",\"annulation_async\",\"erreur_add_error\",\"erreur_return_err\"])"
+    },
+    {
+      "name": "deux_onglets",
+      "status": "echec",
+      "detail": "A : reçus {\"async\":142}, étrangers 139, désordre 0 ; B : reçus {\"async\":141}, étrangers 143, désordre 0"
+    }
+  ],
+  "erreurs": [],
+  "version": "157.0.8103.78",
+  "passes": [
+    [
+      {
+        "name": "ping",
+        "status": "ok",
+        "detail": "ping 10 ms",
+        "ms": 131
+      },
+      {
+        "name": "rafale_async_1000",
+        "status": "ok",
+        "detail": "1000 reçus dans l'ordre en 41 ms",
+        "ms": 42
+      },
+      {
+        "name": "rafale_worker_1000",
+        "status": "ok",
+        "detail": "1000 reçus dans l'ordre en 30 ms",
+        "ms": 30
+      },
+      {
+        "name": "rafale_async_10000",
+        "status": "ok",
+        "detail": "10000 reçus dans l'ordre en 195 ms",
+        "ms": 196
+      },
+      {
+        "name": "rafale_worker_10000",
+        "status": "ok",
+        "detail": "10000 reçus dans l'ordre en 197 ms",
+        "ms": 198
+      },
+      {
+        "name": "simultanes_4",
+        "status": "ok",
+        "detail": "4 flux simultanés complets et ordonnés (4e flux async : pas de worker sans en-têtes)",
+        "ms": 272
+      },
+      {
+        "name": "consommateur_lent_async",
+        "status": "echec",
+        "detail": "blocage (délai dépassé)",
+        "ms": 30001
+      },
+      {
+        "name": "consommateur_lent_worker",
+        "status": "echec",
+        "detail": "blocage (délai dépassé)",
+        "ms": 30001
+      },
+      {
+        "name": "annulation_async",
+        "status": "echec",
+        "detail": "fuite : l'émetteur Rust tourne encore 1 s après l'annulation (186 émissions de plus ; stop_stream → stopRequested)",
+        "ms": 1325
+      },
+      {
+        "name": "annulation_worker",
+        "status": "nt",
+        "detail": "pas de worker sans en-têtes : bloquerait le fil principal",
+        "ms": 0
+      },
+      {
+        "name": "annulation_explicite_async",
+        "status": "ok",
+        "detail": "arrêt Rust : stopRequested, 0 émission(s) après l'annulation",
+        "ms": 1123
+      },
+      {
+        "name": "annulation_explicite_worker",
+        "status": "nt",
+        "detail": "pas de worker sans en-têtes : bloquerait le fil principal",
+        "ms": 0
+      },
+      {
+        "name": "reabonnement",
+        "status": "ok",
+        "detail": "100/100 puis 50/50 après réabonnement ; ancien émetteur encore en cours (fuite) au moment du réabonnement",
+        "ms": 404
+      },
+      {
+        "name": "erreur_add_error",
+        "status": "echec",
+        "detail": "ordre 0,1,2,E",
+        "ms": 13
+      },
+      {
+        "name": "erreur_return_err",
+        "status": "echec",
+        "detail": "Err renvoyé par la fonction : flux fermé normalement, erreur hors du flux : erreur asynchrone non interceptée (minified:ho)",
+        "ms": 216
+      },
+      {
+        "name": "repli_requete_notification",
+        "status": "ok",
+        "detail": "1000/1000 via 10 relectures pour 1001 notifications ; 0 observateur restant",
+        "ms": 61
+      },
+      {
+        "name": "emetteurs_restants",
+        "status": "info",
+        "detail": "0 émetteur(s) Rust encore en cours en fin de série",
+        "ms": 0
+      }
+    ],
+    [
+      {
+        "name": "ping",
+        "status": "ok",
+        "detail": "ping 10 ms",
+        "ms": 134
+      },
+      {
+        "name": "rafale_async_1000",
+        "status": "ok",
+        "detail": "1000 reçus dans l'ordre en 43 ms",
+        "ms": 43
+      },
+      {
+        "name": "rafale_worker_1000",
+        "status": "ok",
+        "detail": "1000 reçus dans l'ordre en 30 ms",
+        "ms": 30
+      },
+      {
+        "name": "rafale_async_10000",
+        "status": "ok",
+        "detail": "10000 reçus dans l'ordre en 156 ms",
+        "ms": 156
+      },
+      {
+        "name": "rafale_worker_10000",
+        "status": "ok",
+        "detail": "10000 reçus dans l'ordre en 149 ms",
+        "ms": 149
+      },
+      {
+        "name": "simultanes_4",
+        "status": "ok",
+        "detail": "4 flux simultanés complets et ordonnés (4e flux async : pas de worker sans en-têtes)",
+        "ms": 276
+      },
+      {
+        "name": "consommateur_lent_async",
+        "status": "echec",
+        "detail": "blocage (délai dépassé)",
+        "ms": 30001
+      },
+      {
+        "name": "consommateur_lent_worker",
+        "status": "echec",
+        "detail": "blocage (délai dépassé)",
+        "ms": 30001
+      },
+      {
+        "name": "annulation_async",
+        "status": "echec",
+        "detail": "fuite : l'émetteur Rust tourne encore 1 s après l'annulation (185 émissions de plus ; stop_stream → stopRequested)",
+        "ms": 1317
+      },
+      {
+        "name": "annulation_worker",
+        "status": "nt",
+        "detail": "pas de worker sans en-têtes : bloquerait le fil principal",
+        "ms": 0
+      },
+      {
+        "name": "annulation_explicite_async",
+        "status": "ok",
+        "detail": "arrêt Rust : stopRequested, 0 émission(s) après l'annulation",
+        "ms": 1165
+      },
+      {
+        "name": "annulation_explicite_worker",
+        "status": "nt",
+        "detail": "pas de worker sans en-têtes : bloquerait le fil principal",
+        "ms": 0
+      },
+      {
+        "name": "reabonnement",
+        "status": "ok",
+        "detail": "100/100 puis 50/50 après réabonnement ; ancien émetteur encore en cours (fuite) au moment du réabonnement",
+        "ms": 405
+      },
+      {
+        "name": "erreur_add_error",
+        "status": "echec",
+        "detail": "ordre 0,1,2,E",
+        "ms": 14
+      },
+      {
+        "name": "erreur_return_err",
+        "status": "echec",
+        "detail": "Err renvoyé par la fonction : flux fermé normalement, erreur hors du flux : erreur asynchrone non interceptée (minified:ho)",
+        "ms": 213
+      },
+      {
+        "name": "repli_requete_notification",
+        "status": "ok",
+        "detail": "1000/1000 via 10 relectures pour 1001 notifications ; 0 observateur restant",
+        "ms": 58
+      },
+      {
+        "name": "emetteurs_restants",
+        "status": "info",
+        "detail": "0 émetteur(s) Rust encore en cours en fin de série",
+        "ms": 0
+      }
+    ],
+    [
+      {
+        "name": "ping",
+        "status": "ok",
+        "detail": "ping 10 ms",
+        "ms": 120
+      },
+      {
+        "name": "rafale_async_1000",
+        "status": "ok",
+        "detail": "1000 reçus dans l'ordre en 42 ms",
+        "ms": 43
+      },
+      {
+        "name": "rafale_worker_1000",
+        "status": "ok",
+        "detail": "1000 reçus dans l'ordre en 30 ms",
+        "ms": 30
+      },
+      {
+        "name": "rafale_async_10000",
+        "status": "ok",
+        "detail": "10000 reçus dans l'ordre en 183 ms",
+        "ms": 183
+      },
+      {
+        "name": "rafale_worker_10000",
+        "status": "ok",
+        "detail": "10000 reçus dans l'ordre en 183 ms",
+        "ms": 184
+      },
+      {
+        "name": "simultanes_4",
+        "status": "ok",
+        "detail": "4 flux simultanés complets et ordonnés (4e flux async : pas de worker sans en-têtes)",
+        "ms": 276
+      },
+      {
+        "name": "consommateur_lent_async",
+        "status": "echec",
+        "detail": "blocage (délai dépassé)",
+        "ms": 30001
+      },
+      {
+        "name": "consommateur_lent_worker",
+        "status": "echec",
+        "detail": "blocage (délai dépassé)",
+        "ms": 30002
+      },
+      {
+        "name": "annulation_async",
+        "status": "echec",
+        "detail": "fuite : l'émetteur Rust tourne encore 1 s après l'annulation (186 émissions de plus ; stop_stream → stopRequested)",
+        "ms": 1322
+      },
+      {
+        "name": "annulation_worker",
+        "status": "nt",
+        "detail": "pas de worker sans en-têtes : bloquerait le fil principal",
+        "ms": 0
+      },
+      {
+        "name": "annulation_explicite_async",
+        "status": "ok",
+        "detail": "arrêt Rust : stopRequested, 0 émission(s) après l'annulation",
+        "ms": 1155
+      },
+      {
+        "name": "annulation_explicite_worker",
+        "status": "nt",
+        "detail": "pas de worker sans en-têtes : bloquerait le fil principal",
+        "ms": 0
+      },
+      {
+        "name": "reabonnement",
+        "status": "ok",
+        "detail": "100/100 puis 50/50 après réabonnement ; ancien émetteur encore en cours (fuite) au moment du réabonnement",
+        "ms": 404
+      },
+      {
+        "name": "erreur_add_error",
+        "status": "echec",
+        "detail": "ordre 0,1,2,E",
+        "ms": 12
+      },
+      {
+        "name": "erreur_return_err",
+        "status": "echec",
+        "detail": "Err renvoyé par la fonction : flux fermé normalement, erreur hors du flux : erreur asynchrone non interceptée (minified:ho)",
+        "ms": 215
+      },
+      {
+        "name": "repli_requete_notification",
+        "status": "ok",
+        "detail": "1000/1000 via 10 relectures pour 1001 notifications ; 0 observateur restant",
+        "ms": 71
+      },
+      {
+        "name": "emetteurs_restants",
+        "status": "info",
+        "detail": "0 émetteur(s) Rust encore en cours en fin de série",
+        "ms": 0
+      }
+    ],
+    [
+      {
+        "name": "ping",
+        "status": "ok",
+        "detail": "ping 10 ms",
+        "ms": 121
+      },
+      {
+        "name": "rafale_async_1000",
+        "status": "ok",
+        "detail": "1000 reçus dans l'ordre en 40 ms",
+        "ms": 41
+      },
+      {
+        "name": "rafale_worker_1000",
+        "status": "ok",
+        "detail": "1000 reçus dans l'ordre en 30 ms",
+        "ms": 30
+      },
+      {
+        "name": "rafale_async_10000",
+        "status": "ok",
+        "detail": "10000 reçus dans l'ordre en 141 ms",
+        "ms": 141
+      },
+      {
+        "name": "rafale_worker_10000",
+        "status": "ok",
+        "detail": "10000 reçus dans l'ordre en 159 ms",
+        "ms": 159
+      },
+      {
+        "name": "simultanes_4",
+        "status": "ok",
+        "detail": "4 flux simultanés complets et ordonnés (4e flux async : pas de worker sans en-têtes)",
+        "ms": 272
+      },
+      {
+        "name": "consommateur_lent_async",
+        "status": "echec",
+        "detail": "blocage (délai dépassé)",
+        "ms": 30000
+      },
+      {
+        "name": "consommateur_lent_worker",
+        "status": "echec",
+        "detail": "blocage (délai dépassé)",
+        "ms": 30002
+      },
+      {
+        "name": "annulation_async",
+        "status": "echec",
+        "detail": "fuite : l'émetteur Rust tourne encore 1 s après l'annulation (192 émissions de plus ; stop_stream → stopRequested)",
+        "ms": 1318
+      },
+      {
+        "name": "annulation_worker",
+        "status": "nt",
+        "detail": "pas de worker sans en-têtes : bloquerait le fil principal",
+        "ms": 0
+      },
+      {
+        "name": "annulation_explicite_async",
+        "status": "ok",
+        "detail": "arrêt Rust : stopRequested, 0 émission(s) après l'annulation",
+        "ms": 1163
+      },
+      {
+        "name": "annulation_explicite_worker",
+        "status": "nt",
+        "detail": "pas de worker sans en-têtes : bloquerait le fil principal",
+        "ms": 0
+      },
+      {
+        "name": "reabonnement",
+        "status": "ok",
+        "detail": "100/100 puis 50/50 après réabonnement ; ancien émetteur encore en cours (fuite) au moment du réabonnement",
+        "ms": 404
+      },
+      {
+        "name": "erreur_add_error",
+        "status": "echec",
+        "detail": "ordre 0,1,2,E",
+        "ms": 12
+      },
+      {
+        "name": "erreur_return_err",
+        "status": "echec",
+        "detail": "Err renvoyé par la fonction : flux fermé normalement, erreur hors du flux : erreur asynchrone non interceptée (minified:ho)",
+        "ms": 220
+      },
+      {
+        "name": "repli_requete_notification",
+        "status": "ok",
+        "detail": "1000/1000 via 10 relectures pour 1001 notifications ; 0 observateur restant",
+        "ms": 72
+      },
+      {
+        "name": "emetteurs_restants",
+        "status": "info",
+        "detail": "0 émetteur(s) Rust encore en cours en fin de série",
+        "ms": 0
+      }
+    ],
+    [
+      {
+        "name": "ping",
+        "status": "ok",
+        "detail": "ping 10 ms",
+        "ms": 121
+      },
+      {
+        "name": "rafale_async_1000",
+        "status": "ok",
+        "detail": "1000 reçus dans l'ordre en 47 ms",
+        "ms": 48
+      },
+      {
+        "name": "rafale_worker_1000",
+        "status": "ok",
+        "detail": "1000 reçus dans l'ordre en 30 ms",
+        "ms": 30
+      },
+      {
+        "name": "rafale_async_10000",
+        "status": "ok",
+        "detail": "10000 reçus dans l'ordre en 193 ms",
+        "ms": 194
+      },
+      {
+        "name": "rafale_worker_10000",
+        "status": "ok",
+        "detail": "10000 reçus dans l'ordre en 195 ms",
+        "ms": 196
+      },
+      {
+        "name": "simultanes_4",
+        "status": "ok",
+        "detail": "4 flux simultanés complets et ordonnés (4e flux async : pas de worker sans en-têtes)",
+        "ms": 270
+      },
+      {
+        "name": "consommateur_lent_async",
+        "status": "echec",
+        "detail": "blocage (délai dépassé)",
+        "ms": 30001
+      },
+      {
+        "name": "consommateur_lent_worker",
+        "status": "echec",
+        "detail": "blocage (délai dépassé)",
+        "ms": 30001
+      },
+      {
+        "name": "annulation_async",
+        "status": "echec",
+        "detail": "fuite : l'émetteur Rust tourne encore 1 s après l'annulation (186 émissions de plus ; stop_stream → stopRequested)",
+        "ms": 1321
+      },
+      {
+        "name": "annulation_worker",
+        "status": "nt",
+        "detail": "pas de worker sans en-têtes : bloquerait le fil principal",
+        "ms": 0
+      },
+      {
+        "name": "annulation_explicite_async",
+        "status": "ok",
+        "detail": "arrêt Rust : stopRequested, 0 émission(s) après l'annulation",
+        "ms": 1150
+      },
+      {
+        "name": "annulation_explicite_worker",
+        "status": "nt",
+        "detail": "pas de worker sans en-têtes : bloquerait le fil principal",
+        "ms": 0
+      },
+      {
+        "name": "reabonnement",
+        "status": "ok",
+        "detail": "100/100 puis 50/50 après réabonnement ; ancien émetteur encore en cours (fuite) au moment du réabonnement",
+        "ms": 403
+      },
+      {
+        "name": "erreur_add_error",
+        "status": "echec",
+        "detail": "ordre 0,1,2,E",
+        "ms": 12
+      },
+      {
+        "name": "erreur_return_err",
+        "status": "echec",
+        "detail": "Err renvoyé par la fonction : flux fermé normalement, erreur hors du flux : erreur asynchrone non interceptée (minified:ho)",
+        "ms": 214
+      },
+      {
+        "name": "repli_requete_notification",
+        "status": "ok",
+        "detail": "1000/1000 via 10 relectures pour 1001 notifications ; 0 observateur restant",
+        "ms": 62
+      },
+      {
+        "name": "emetteurs_restants",
+        "status": "info",
+        "detail": "0 émetteur(s) Rust encore en cours en fin de série",
+        "ms": 0
+      }
+    ]
+  ],
+  "crossOriginIsolated": false,
+  "consoleAuto": [
+    "[auto#1] debug: Injecting <script> tag. Using callback.",
+    "[auto#1] warning: Warning: Buffers cannot be shared due to missing cross-origin headers. Please refer to https://fzyzcjy.github.io/flutter_rust_bridge/manual/miscellaneous/web-cross-origin for details.",
+    "[auto#1] log: S5START sansEntetes=true web=true",
+    "[auto#1] warning: [.WebGL-0x34c4055b5200]GL Driver Message (OpenGL, Performance, GL_CLOSE_PATH_NV, High): GPU stall due to ReadPixels",
+    "[auto#1] log: S5RESULT {\"name\":\"ping\",\"status\":\"ok\",\"detail\":\"ping 10 ms\",\"ms\":131}",
+    "[auto#1] log: S5RESULT {\"name\":\"rafale_async_1000\",\"status\":\"ok\",\"detail\":\"1000 reçus dans l'ordre en 41 ms\",\"ms\":42}",
+    "[auto#1] warning: [.WebGL-0x34c4055b5200]GL Driver Message (OpenGL, Performance, GL_CLOSE_PATH_NV, High): GPU stall due to ReadPixels",
+    "[auto#1] log: S5RESULT {\"name\":\"rafale_worker_1000\",\"status\":\"ok\",\"detail\":\"1000 reçus dans l'ordre en 30 ms\",\"ms\":30}",
+    "[auto#1] warning: [.WebGL-0x34c4055b5200]GL Driver Message (OpenGL, Performance, GL_CLOSE_PATH_NV, High): GPU stall due to ReadPixels",
+    "[auto#1] warning: [.WebGL-0x34c4055b5200]GL Driver Message (OpenGL, Performance, GL_CLOSE_PATH_NV, High): GPU stall due to ReadPixels (this message will no longer repeat)",
+    "[auto#1] log: S5RESULT {\"name\":\"rafale_async_10000\",\"status\":\"ok\",\"detail\":\"10000 reçus dans l'ordre en 195 ms\",\"ms\":196}",
+    "[auto#1] log: S5RESULT {\"name\":\"rafale_worker_10000\",\"status\":\"ok\",\"detail\":\"10000 reçus dans l'ordre en 197 ms\",\"ms\":198}",
+    "[auto#1] log: S5RESULT {\"name\":\"simultanes_4\",\"status\":\"ok\",\"detail\":\"4 flux simultanés complets et ordonnés (4e flux async : pas de worker sans en-têtes)\",\"ms\":272}",
+    "[auto#1] log: S5RESULT {\"name\":\"consommateur_lent_async\",\"status\":\"echec\",\"detail\":\"blocage (délai dépassé)\",\"ms\":30001}",
+    "[auto#1] log: S5RESULT {\"name\":\"consommateur_lent_worker\",\"status\":\"echec\",\"detail\":\"blocage (délai dépassé)\",\"ms\":30001}",
+    "[auto#1] log: S5RESULT {\"name\":\"annulation_async\",\"status\":\"echec\",\"detail\":\"fuite : l'émetteur Rust tourne encore 1 s après l'annulation (186 émissions de plus ; stop_stream → stopRequested)\",\"ms\":1325}",
+    "[auto#1] log: S5RESULT {\"name\":\"annulation_worker\",\"status\":\"nt\",\"detail\":\"pas de worker sans en-têtes : bloquerait le fil principal\",\"ms\":0}",
+    "[auto#1] log: S5RESULT {\"name\":\"annulation_explicite_async\",\"status\":\"ok\",\"detail\":\"arrêt Rust : stopRequested, 0 émission(s) après l'annulation\",\"ms\":1123}",
+    "[auto#1] log: S5RESULT {\"name\":\"annulation_explicite_worker\",\"status\":\"nt\",\"detail\":\"pas de worker sans en-têtes : bloquerait le fil principal\",\"ms\":0}",
+    "[auto#1] log: S5RESULT {\"name\":\"reabonnement\",\"status\":\"ok\",\"detail\":\"100/100 puis 50/50 après réabonnement ; ancien émetteur encore en cours (fuite) au moment du réabonnement\",\"ms\":404}",
+    "[auto#1] log: S5RESULT {\"name\":\"erreur_add_error\",\"status\":\"echec\",\"detail\":\"ordre 0,1,2,E\",\"ms\":13}",
+    "[auto#1] log: S5RESULT {\"name\":\"erreur_return_err\",\"status\":\"echec\",\"detail\":\"Err renvoyé par la fonction : flux fermé normalement, erreur hors du flux : erreur asynchrone non interceptée (minified:ho)\",\"ms\":216}",
+    "[auto#1] log: S5RESULT {\"name\":\"repli_requete_notification\",\"status\":\"ok\",\"detail\":\"1000/1000 via 10 relectures pour 1001 notifications ; 0 observateur restant\",\"ms\":61}",
+    "[auto#1] log: S5RESULT {\"name\":\"emetteurs_restants\",\"status\":\"info\",\"detail\":\"0 émetteur(s) Rust encore en cours en fin de série\",\"ms\":0}",
+    "[auto#1] log: S5DONE"
+  ]
+}

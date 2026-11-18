@@ -1,0 +1,7 @@
+# Variante « web sans en-têtes COOP/COEP » (essai S5, étape 4).
+# Utilisée seulement par scripts/build_web.sh sans-entetes ; le code généré committé
+# correspond à flutter_rust_bridge.yaml (mode threadé par défaut).
+rust_input: crate::api
+rust_root: ../crates/bridge/
+dart_output: lib/src/rust
+default_dart_async: false
