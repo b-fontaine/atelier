@@ -112,7 +112,7 @@ footer{margin-top:56px;color:var(--muted);font-size:.9rem;border-top:1px solid v
     <li><b>La synchronisation est écrite dans le cœur</b>, sur un modèle simple à serveur d'autorité.</li>
     <li><b>Une seule spécification Gherkin</b> pilote le cœur, la TUI et Flutter.</li>
   </ul>
-  <p style="margin:0">Le point le moins sûr est le stockage hors ligne dans le navigateur : il faut un essai avant de s'engager (<a href="#risques">section 13</a>).</p>
+  <p style="margin:0">Le point qui était le moins sûr, le stockage hors ligne dans le navigateur, a été validé par un prototype sur Chrome et Firefox. Il reste à le vérifier sur Safari (<a href="#risques">section 13</a>).</p>
 </div>
 
 <div class="card">
@@ -225,8 +225,8 @@ footer{margin-top:56px;color:var(--muted);font-size:.9rem;border-top:1px solid v
   <div class="card">
     <h3>⑤ Stockage local</h3>
     <p><b>SQLite partout</b> : <code>rusqlite</code> en natif et, si l'essai S2 le confirme, sur le web.</p>
-    <p>En natif, c'est sans histoire. Dans le navigateur, <code>rusqlite</code> compile désormais en WASM avec un stockage OPFS <span class="tag t-p">source primaire</span>, mais son mariage avec le pont n'a pas été essayé <span class="tag t-n">à tester</span>.</p>
-    <p style="margin:0">Trois plans de repli sont prévus (<a href="#sync">section 5</a>).</p>
+    <p>En natif, c'est sans histoire. Dans le navigateur, <code>rusqlite</code> compile désormais en WASM avec un stockage OPFS <span class="tag t-p">source primaire</span>, et l'assemblage avec le pont fonctionne sur Chrome et Firefox <span class="tag t-v">essai réussi</span>. Safari n'a pas été testé <span class="tag t-n">à tester</span>.</p>
+    <p style="margin:0">Un plan de repli reste prévu si Safari échoue (<a href="#sync">section 5</a>).</p>
   </div>
   <div class="card">
     <h3>⑥ Synchronisation</h3>
@@ -340,11 +340,12 @@ footer{margin-top:56px;color:var(--muted);font-size:.9rem;border-top:1px solid v
 <h3>Le stockage dans le navigateur : trois plans</h3>
 <div class="tablewrap"><table>
   <tr><th>Plan</th><th>Principe</th><th>Quand le retenir</th></tr>
-  <tr><td><b>A</b></td><td>Le même adaptateur SQLite qu'en natif, sur le stockage OPFS du navigateur. Un seul onglet à la fois.</td><td>Si l'essai S2 réussit. Le cœur est alors partagé à 100 %.</td></tr>
-  <tr><td><b>B</b></td><td>Pas de stockage durable sur le web : l'application web demande une connexion.</td><td>Si S2 échoue et que le hors-ligne web n'est pas prioritaire.</td></tr>
-  <tr><td><b>C</b></td><td>Sur le web seulement, le stockage est fourni par Dart et injecté dans le cœur.</td><td>Si S2 échoue et que le hors-ligne web est indispensable.</td></tr>
+  <tr><td><b>A</b> (retenu)</td><td>Le même adaptateur SQLite qu'en natif, sur le stockage OPFS du navigateur. Un seul onglet à la fois, avec un message clair dans le second.</td><td>Validé sur Chrome et Firefox <span class="tag t-v">essai réussi</span>. Le cœur est partagé à 100 %.</td></tr>
+  <tr><td><b>B</b></td><td>Pas de stockage durable sur le web : l'application web demande une connexion.</td><td>Abandonné : le hors-ligne web fonctionne.</td></tr>
+  <tr><td><b>C</b></td><td>Sur le web seulement, le stockage est fourni par Dart et injecté dans le cœur.</td><td>Repli si Safari échoue.</td></tr>
 </table></div>
 <p>L'architecture hexagonale rend ces plans interchangeables : seul l'adaptateur de stockage change, jamais le domaine.</p>
+<p>Deux enseignements du prototype : toute la base doit être pilotée depuis un seul fil d'exécution du navigateur, et le mécanisme qui lui réserve ce fil s'appuie aujourd'hui sur un détail interne du pont, à remplacer par une solution durable. Le cœur compilé pour le web pèse environ 500 Ko compressé.</p>
 
 <h3>Solutions du marché examinées</h3>
 <div class="tablewrap"><table>
@@ -539,11 +540,11 @@ footer{margin-top:56px;color:var(--muted);font-size:.9rem;border-top:1px solid v
 <p>À garder en tête : le cabinet Very Good Ventures juge un cœur Rust excessif pour une application qui se résume à une API et une base locale. Sans TUI ni site public à alimenter, cet avis s'appliquerait.</p>
 
 <h2 id="risques">13. Risques et essais préalables</h2>
-<p>Six prototypes courts doivent confirmer les points fragiles. Trois sont faits (S1, S4 et S6, le 18 novembre 2026). Restent S2, S3 et S5, qui conditionnent le web applicatif.</p>
+<p>Six prototypes courts doivent confirmer les points fragiles. Quatre sont faits (S1, S2, S4 et S6, le 18 novembre 2026). Restent S3 et S5, ainsi que la vérification sur Safari et sur les cibles Apple.</p>
 <div class="tablewrap"><table>
   <tr><th>#</th><th>Essai</th><th>Si échec</th></tr>
   <tr><td>S1 ✅</td><td>Le pont dans le monorepo, avec Native Assets et Flutter 3.50 : <b>réussi</b> sur Linux et Android ; cibles Apple non testées</td><td>—</td></tr>
-  <tr><td>S2</td><td>Cœur en WASM avec SQLite persistant ; rechargement de page ; second onglet</td><td>Plan B ou C de stockage</td></tr>
+  <tr><td>S2 ✅</td><td>Cœur en WASM avec SQLite persistant : <b>réussi</b> sur Chrome et Firefox ; Safari non testé</td><td>Plan C si Safari échoue</td></tr>
   <tr><td>S3</td><td>En-têtes d'isolation sur l'hébergeur visé, connexion par redirection, sur Safari</td><td>Mode mono-fil du pont, moins réactif</td></tr>
   <tr><td>S4 ✅</td><td>Un même <code>.feature</code> exécuté par cucumber-rs et <code>bdd_widget_test</code> : <b>réussi</b>, avec un dialecte plus étroit que prévu</td><td>—</td></tr>
   <tr><td>S5</td><td>Flux du pont sur le web, en charge</td><td>Requêtes ponctuelles + notification</td></tr>
@@ -576,7 +577,7 @@ footer{margin-top:56px;color:var(--muted);font-size:.9rem;border-top:1px solid v
 <h2 id="limites">15. Limites de l'étude</h2>
 <ul>
   <li>La recherche principale a vérifié 25 affirmations par vote contradictoire (toutes confirmées). Elles portent sur le pont, Flutter Web, PowerSync, Loro et Crux.</li>
-  <li>Trois essais ont depuis été menés et réussis (pont sur Linux et Android, spécification Gherkin partagée, jetons vers ratatui). Les cibles Apple, le web applicatif et le stockage dans le navigateur ne sont pas encore validés par l'expérience.</li>
+  <li>Quatre essais ont depuis été menés et réussis (pont sur Linux et Android, stockage web sur Chrome et Firefox, spécification Gherkin partagée, jetons vers ratatui). Aucune cible Apple n'a été testée, Safari compris.</li>
   <li>Tout le reste (TUI, Gherkin partagé, jetons, CI, distribution, retours d'expérience, alternatives, stockage web) vient de recherches complémentaires lues sur sources officielles, sans contre-vérification.</li>
   <li>Trois choix sont des jugements et non des faits : garder la présentation en Dart, préférer Leptos, écrire la synchronisation soi-même.</li>
   <li>Les versions citées sont celles du 16 novembre 2026 ; plusieurs bibliothèques évoluent vite.</li>

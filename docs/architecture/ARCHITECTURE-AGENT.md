@@ -54,7 +54,7 @@ Chaque affirmation factuelle porte un marqueur. Ne promeus jamais un `[J]` ou un
 4. **Web applicatif : Flutter Web + cœur Rust en WASM**, servi sur un sous-domaine isolé (COOP/COEP) `[V]`. **Web public : site DOM séparé**, Leptos par défaut `[J]`, comme le recommande la doc Flutter pour tout contenu indexable `[V]`.
 5. **Synchronisation : moteur maison dans le cœur** (file de mutations, tirage par curseur, serveur d'autorité) `[J]`. Raison décisive : le SDK Rust de PowerSync ne fonctionne pas dans le navigateur `[P]`, ce qui casserait le cœur unique.
 6. **Une seule spécification Gherkin** à la racine, exécutée par cucumber-rs (cœur, TUI) et par `bdd_widget_test` (Flutter) via une copie synchronisée vérifiée en CI `[J]` sur faits `[P]`.
-7. **Point le plus incertain** : la persistance SQLite hors ligne dans le navigateur depuis Rust. Les briques existent `[P]`, leur assemblage avec le pont n'est pas vérifié `[NV]`. Un essai (S2, §14) doit trancher avant tout engagement sur le web applicatif.
+7. **Point qui était le plus incertain** : la persistance SQLite hors ligne dans le navigateur depuis Rust. L'essai S2 l'a validée sur Chrome et Firefox `[E]`. **Safari reste à tester** `[NV]` avant tout engagement public sur le web applicatif.
 
 ---
 
@@ -142,15 +142,17 @@ Constats de S1 `[E]` :
 **Faits.**
 - Le mode par défaut (threadé) de FRB sur le web exige `Cross-Origin-Opener-Policy: same-origin` et `Cross-Origin-Embedder-Policy: credentialless` ou `require-corp` `[V]`.
 - Safari ne supporte pas `credentialless` (jusqu'à 27.x) ; Firefox Android non plus `[P]`. **Il faut donc `require-corp`**, qui oblige toute ressource tierce à porter CORP ou CORS.
-- Mode sans en-têtes possible mais déconseillé : `default_dart_async: false`, tout tourne en synchrone sur le fil principal `[V]`.
-- `flutter_rust_bridge_codegen build-web` est obligatoire (pas de hook web). Il lance `wasm-pack` avec la **toolchain nightly**, `-Z build-std=std,panic_abort`, `--target no-modules`, `+atomics,+bulk-memory,+mutable-globals` `[P]`.
+- Le mode sans en-têtes (`default_dart_async: false`, tout sur le fil principal `[V]`) est **incompatible avec le plan A de l'ADR-07** `[E]` : le VFS OPFS n'existe que dans un Worker.
+- Servi sans COOP/COEP, le build threadé plante à `RustLib.init()` par une exception non typée `[E]`. L'app DOIT tester `crossOriginIsolated` avant d'initialiser le pont et afficher un message clair.
+- Sur le web, une `async fn` du pont s'exécute sur le **fil principal** ; une `fn` non async s'exécute dans un Worker du pool, dont la taille est `navigator.hardwareConcurrency` ; `#[frb(sync)]` s'exécute sur le fil principal `[E]`. Les calculs lourds en `fn` non async sont nettement plus lents sur le web qu'en natif (allocateur partagé verrouillé) `[E]`.
+- `flutter_rust_bridge_codegen build-web` est obligatoire (pas de hook web). Il lance `wasm-pack build -t no-modules … -- -Z build-std=std,panic_abort` avec la **toolchain nightly** et `+atomics,+bulk-memory,+mutable-globals` `[P]`, confirmé par S2 `[E]`. La toolchain se choisit par `--wasm-pack-rustup-toolchain` : **épingler une date** (S2 : `nightly-2026-11-15`, avec `rust-src` et la cible `wasm32-unknown-unknown`). Elle prime sur `rust-toolchain.toml`, le natif reste en stable. Mesures S2 : build web à froid 30 s, 2 à 3 s en incrémental ; `.wasm` avec SQLite 1,62 Mio, 507 Kio en brotli `[E]`.
 - Flutter 3.50 : un build `--wasm` ne tourne en dart2wasm par défaut que sur Chromium 137+ ; Safari 26.2+ et Firefox 147+ retombent sur dart2js + CanvasKit sauf activation par `wasmAllowList` `[V]`.
 - La sortie Dart WebAssembly de FRB n'existe que dans 2.14.0-beta.2, pas dans 2.13.0 stable `[P]`.
 - Accessibilité Flutter Web : arbre sémantique désactivé par défaut, à activer par `SemanticsBinding.instance.ensureSemantics()` `[P]`. URL en hash par défaut ; `usePathUrlStrategy()` exige une réécriture serveur `[P]`.
 - Poids indicatif (un seul banc d'essai, Flutter 3.47.4, brotli) : skwasm ≈ 1,65 Mo, CanvasKit ≈ 1,98 à 2,70 Mo, plus le code applicatif `[S]`.
 
 **Décisions.** `[J]`
-- Tant que FRB stable est en 2.13 : construire l'app web en **dart2js + CanvasKit** (`flutter build web`, sans `--wasm`). Réévaluer à la sortie stable de 2.14.
+- Tant que FRB stable est en 2.13 : construire l'app web en **dart2js + CanvasKit** (`flutter build web --no-wasm-dry-run`, sans `--wasm`), voie validée par S2 `[E]`. Réévaluer à la sortie stable de 2.14.
 - L'app web est servie sur une **origine dédiée** (`app.exemple.com`) avec `COOP: same-origin` et `COEP: require-corp`, en HTTPS.
 - Authentification tierce **par redirection**, pas par popup : sous COOP `same-origin`, la référence `opener` vers un popup non isolé est coupée `[P]`.
 - Aucune ressource tierce sans CORP/CORS dans l'app (polices, images, scripts d'analyse) : auto-héberger.
@@ -193,15 +195,26 @@ Constats de S1 `[E]` :
 - D'après la doc SQLite : `opfs-sahpool` ne demande pas COOP/COEP, mais **un second onglet sur la même origine échoue à l'initialisation** `[P]`.
 - `diesel` 2.4.0 documente aussi le WASM via `sqlite-wasm-rs` `[P]`. `sqlx` : support WASM non trouvé `[NV]`.
 
-**Non vérifié** `[NV]` : le fonctionnement de `sahpool` dans le pool de Workers de FRB ; la compatibilité d'un SQLite `THREADSAFE=0` avec un build `+atomics`.
+**Établi par l'essai S2** `[E]` (Chrome 157 et Firefox 159 sous Linux ; `adr/S2-wasm-sqlite.md`) :
+- `sahpool` fonctionne dans un Worker du pool FRB : une donnée écrite est relue après rechargement de page, y compris sous charge concurrente.
+- SQLite `THREADSAFE=0` fonctionne dans un build `+atomics`, **à condition que tous les appels SQLite partent d'un seul Worker**, et que SQLite soit compilé avec `CFLAGS_wasm32_unknown_unknown = "-matomics -mbulk-memory"` (dans `.cargo/config.toml`, sans effet en natif). Sans ce réglage, l'édition de liens échoue.
+- Le VFS seul ne demande pas COOP/COEP, mais son assemblage avec FRB les exige (§3.5).
+- Second onglet : l'installation du VFS renvoie une erreur récupérable dont le message varie selon le navigateur. La détection fiable est un verrou **Web Locks** (`ifAvailable`) pris depuis le Worker **avant** l'installation du VFS, converti en erreur typée.
+- Le code SQL est identique en natif et sur le web ; la partie propre au web tient en une centaine de lignes.
 
-**Décision : trois plans, départagés par l'essai S2.** `[J]`
+**Patron imposé** `[E]` : un **acteur** propriétaire de l'unique `rusqlite::Connection`, exécuté dans un Worker (un `std::thread` en natif), un seul par page, jamais recréé. Les `async fn` du pont lui envoient des commandes par canal et attendent la réponse. Aucune `Connection` NE DOIT sortir de cet acteur ; il vit dans le crate adaptateur.
+
+**Fragilité connue** `[E]` : le Worker de l'acteur retourne dans le pool de FRB, et la prochaine `fn` non async du pont peut s'y exécuter et geler SQLite (5 000 insertions : 11,5 s au lieu de 0,1 s). Le prototype le réserve par un contournement qui dépend d'un détail interne de FRB 2.13.0. À faire : créer un Worker réellement dédié, ou obtenir une API amont. D'ici là, FRB reste épinglé exactement et le test de charge de `spikes/s2-wasm/e2e/` DOIT tourner en CI.
+
+**Non couvert** `[NV]` : **Safari (macOS et iOS)**, navigateurs mobiles, navigation privée, quota et éviction (`navigator.storage.persist()`), migration de schéma, arrêt brutal en cours de transaction. Le plan C n'a pas été prototypé.
+
+**Décision : plan A retenu, sous réserve de Safari ; plan C en repli ; plan B abandonné.** `[E]` pour Chrome et Firefox, `[J]` pour le reste.
 
 | Plan | Description | Quand |
 |---|---|---|
-| **A** | Même adaptateur `rusqlite`, VFS `sahpool` sur le web. Verrou d'onglet unique (Web Locks) avec message « déjà ouvert ailleurs ». | S2 réussit. Cœur 100 % partagé. |
-| **B** | Web sans stockage durable : adaptateur mémoire + réseau. L'app web exige une connexion. | S2 échoue et le hors-ligne web n'est pas prioritaire. |
-| **C** | Sur le web, le port de stockage est implémenté en Dart (`sqlite3` WASM sur OPFS, voie utilisée par le SDK Flutter de PowerSync, dont le web est en bêta `[V]`) et injecté dans le cœur par rappel Rust→Dart. | S2 échoue et le hors-ligne web est requis. Coût : un adaptateur de plus, trafic accru sur le pont. |
+| **A** (retenu) | Même adaptateur `rusqlite`, VFS `sahpool` sur le web. Verrou d'onglet unique (Web Locks) avec message « déjà ouvert ailleurs ». | Validé sur Chrome et Firefox. Cœur 100 % partagé. |
+| **B** (abandonné) | Web sans stockage durable : adaptateur mémoire + réseau. L'app web exige une connexion. | Sans objet : le hors-ligne web fonctionne. |
+| **C** | Sur le web, le port de stockage est implémenté en Dart (`sqlite3` WASM sur OPFS, voie utilisée par le SDK Flutter de PowerSync, dont le web est en bêta `[V]`) et injecté dans le cœur par rappel Rust→Dart. | Repli si Safari échoue, pour Safari seul ou pour tout le web. Coût : un adaptateur de plus, trafic accru sur le pont. |
 
 Les ports de persistance (§5.3) rendent ces plans interchangeables sans toucher au domaine.
 
@@ -355,7 +368,7 @@ pub fn watch_notes(query: NoteListQueryDto, sink: StreamSink<NoteListViewDto>)
 
 - DTO : structures plates, types primitifs, `Vec`, `Option`, enums simples. Identifiants en `String`.
 - **Enums à champs** `[E]` : ils exigent `freezed` côté Dart. Par défaut, s'en tenir au motif validé par S1 : une structure portant une enum sans champ (`BridgeError { kind, message }`). Adopter `freezed` est une décision de l'utilisateur.
-- **Entiers** `[E]` : `u64` devient `BigInt` en Dart. Utiliser `u32` ou `i64` dans les DTO.
+- **Entiers** `[E]` (S1, corrigé par S2) : `u64` devient `BigInt` en Dart, et `i64` devient `int` en natif mais `BigInt` sur le web, ce qui casse la compilation de l'une des deux cibles. L'API du pont NE DOIT contenir ni `i64` ni `u64` : utiliser `i32`, `u32`, `f64` ou `String`.
 - Une erreur Rust arrive en Dart comme une exception typée implémentant `FrbException` `[E]`.
 - `BridgeError` : enum fermée, codes stables, jamais de message destiné à l'utilisateur final (la traduction se fait en Dart).
 - Les flux FRB vont de Rust vers Dart uniquement, et la doc les signale potentiellement instables sur le web `[V]`. Chaque flux DOIT avoir un test d'intégration web, et le cœur DEVRAIT offrir une requête ponctuelle équivalente (`get_notes`) utilisable en repli.
@@ -830,7 +843,7 @@ Chaque essai est un prototype jetable, borné dans le temps, avec un critère de
 | # | Essai | Critère de réussite | Si échec |
 |---|---|---|---|
 | **S1** ✅ | **Réussi le 2026-11-18 sur Linux et émulateur Android** (`adr/S1-pont-frb.md`) ; Apple non testé, à couvrir par un runner macOS. Énoncé d'origine : FRB 2.13.0, backend `native-assets`, crate `bridge` dans le Cargo workspace, Flutter 3.50 | Une fonction async et un flux appelés depuis Flutter sur Linux, Android et un appareil Apple | Backend `cargokit` ; ou attendre FRB 2.14. La CI de FRB cible Flutter 3.47 : compatibilité 3.50 `[NV]` |
-| **S2** | Cœur en WASM : `build-web`, `rusqlite` + VFS `sahpool`, écriture, rechargement de page, relecture ; second onglet | Donnée relue après rechargement sur Chrome, Firefox et Safari ; second onglet détecté proprement | Plan B ou C (ADR-07) |
+| **S2** ✅ | **Réussi le 2026-11-18 sur Chrome et Firefox** (`adr/S2-wasm-sqlite.md`), plan A retenu ; **Safari non testé**. Énoncé d'origine : cœur en WASM : `build-web`, `rusqlite` + VFS `sahpool`, écriture, rechargement de page, relecture ; second onglet | Donnée relue après rechargement sur Chrome, Firefox et Safari ; second onglet détecté proprement | Plan B ou C (ADR-07) |
 | **S3** | En-têtes `COOP: same-origin` + `COEP: require-corp` sur l'hébergeur visé ; connexion par redirection | `crossOriginIsolated` vrai sur Safari ; connexion fonctionnelle | Mode sans en-têtes (`default_dart_async: false`), avec perte de réactivité |
 | **S4** ✅ | **Réussi le 2026-11-18** (`adr/S4-gherkin-partage.md`), dialecte plus étroit que prévu : voir §8. Énoncé d'origine : un `.feature` partagé : cucumber-rs + `bdd_widget_test` avec `literalParameters`, `# language: fr`, une table, un `Scenario Outline`, une étiquette d'exclusion | Les deux exécutants passent sur le même fichier ; `sync_features --check` détecte un écart | Dialecte plus restreint, ou `gherkart` |
 | **S5** | Flux FRB sur le web : 1 000 émissions, annulation d'abonnement, rechargement à chaud | Aucune perte, aucun blocage | Repli sur requêtes ponctuelles + notification de changement |
@@ -842,7 +855,9 @@ Autres risques suivis :
 |---|---|
 | Mainteneur unique de FRB | Crate `bridge` mince et remplaçable (ADR-03) |
 | `native_toolchain_rust` : éditeur tiers, mainteneur unique | Repli cargokit documenté |
-| Toolchain nightly exigée par le build web | Épingler une date de nightly ; job CI dédié |
+| Toolchain nightly exigée par le build web | Épingler une date de nightly ; job CI dédié ; mettre en cache les binaires que `wasm-pack` télécharge ; ne pas lancer deux installations `rustup` en parallèle `[E]` |
+| Contournement de réservation du Worker de stockage, lié aux internes de FRB 2.13.0 | Worker dédié à écrire ; FRB épinglé ; test de charge en CI (§3.7) |
+| Safari non validé pour le stockage web | Essai sur macOS et iOS avec `spikes/s2-wasm/e2e/` adapté, avant tout engagement public ; repli plan C |
 | Temps de build et taille des binaires | Cache (`rust-cache`, `sccache`) ; mesurer dès S1 ; aucun chiffre publié trouvé `[NV]` |
 | Friction de régénération à chaque changement d'API Rust `[S]` | API à gros grain ; contrôle de dérive |
 | Faux Dart divergents | §8.5 |
@@ -914,7 +929,7 @@ Chaque étape se termine par les gates vertes et un commit.
 
 - La recherche principale a extrait 120 affirmations de 27 sources et en a vérifié 25 par vote contradictoire (25 confirmées, 0 réfutée). Elles couvrent FRB, Crux, UniFFI-Dart, PowerSync, Loro et Flutter Web. **Tout le reste** (TUI, monorepo, Gherkin partagé, tokens, CI, empaquetage, retours d'expérience, alternatives, persistance web) vient de cinq recherches complémentaires lues sur sources primaires par un seul agent chacune, sans contre-vérification.
 - Les sources sont surtout des documentations d'éditeurs : fiables sur ce que fait le produit, auto-déclaratives sur sa maturité.
-- À l'origine, aucun assemblage n'avait été compilé. Depuis, les essais S1, S4 et S6 ont été menés (2026-11-18, Linux, prototypes jetables dans `spikes/`) ; leurs ADR font foi pour le détail. Le pont est validé sur Linux et Android, pas sur les cibles Apple. S2, S3 et S5 restent à faire : le web applicatif et le stockage dans le navigateur ne sont toujours pas validés par l'expérience.
+- À l'origine, aucun assemblage n'avait été compilé. Depuis, les essais S1, S2, S4 et S6 ont été menés (2026-11-18, Linux, prototypes jetables dans `spikes/`) ; leurs ADR font foi pour le détail. Le pont est validé sur Linux et Android, le stockage web sur Chrome et Firefox. **Aucune cible Apple n'a été testée, Safari compris.** S3 et S5 restent à faire.
 - Les arbitrages (a)/(b), Leptos/Jaspr/Astro et moteur de synchronisation maison sont des jugements, étayés mais non démontrés.
 
 ---
