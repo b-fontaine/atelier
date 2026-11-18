@@ -1,0 +1,49 @@
+Launching lib/main.dart on Linux in debug mode...
+Building Linux application...                                   
+✓ Built build/linux/x64/debug/bundle/s5_app
+[IMPORTANT:flutter/shell/platform/embedder/embedder_surface_gl_impeller.cc(127)] Using the Impeller rendering backend (OpenGLESSDF).
+Gdk-Message: 12:26:32.745: Unable to load  from the cursor theme
+Syncing files to device Linux...                                    80ms
+
+Flutter run key commands.
+r Hot reload. 🔥🔥🔥
+R Hot restart.
+h List all available interactive commands.
+d Detach (terminate "flutter run" but leave application running).
+c Clear the screen
+q Quit (terminate the application on the device).
+
+A Dart VM Service on Linux is available at: http://127.0.0.1:38825/ek8neaS3HnQ=/
+The Flutter DevTools debugger and profiler on Linux is available at: http://127.0.0.1:38825/ek8neaS3HnQ=/devtools/?uri=ws://127.0.0.1:38825/ek8neaS3HnQ=/ws
+S5LIVE {"code":"v1","ids":{"async":216286000,"worker":216286001},"recv":{"async":25,"worker":25},"rustEmitted":{"async":25,"worker":25},"foreign":0,"disorder":0,"running":2}
+S5LIVE {"code":"v1","ids":{"async":216286000,"worker":216286001},"recv":{"async":50,"worker":50},"rustEmitted":{"async":50,"worker":50},"foreign":0,"disorder":0,"running":2}
+S5LIVE {"code":"v1","ids":{"async":216286000,"worker":216286001},"recv":{"async":74,"worker":75},"rustEmitted":{"async":74,"worker":75},"foreign":0,"disorder":0,"running":2}
+S5LIVE {"code":"v1","ids":{"async":216286000,"worker":216286001},"recv":{"async":99,"worker":99},"rustEmitted":{"async":99,"worker":99},"foreign":0,"disorder":0,"running":2}
+
+Performing hot reload...                                        
+Reloaded 1 of 1165 libraries in 199ms (compile: 22 ms, reload: 88 ms, reassemble: 48 ms).
+S5LIVE {"code":"v2","ids":{"async":216286000,"worker":216286001},"recv":{"async":123,"worker":124},"rustEmitted":{"async":123,"worker":124},"foreign":0,"disorder":0,"running":2}
+S5LIVE {"code":"v2","ids":{"async":216286000,"worker":216286001},"recv":{"async":148,"worker":148},"rustEmitted":{"async":148,"worker":149},"foreign":0,"disorder":0,"running":2}
+S5LIVE {"code":"v2","ids":{"async":216286000,"worker":216286001},"recv":{"async":172,"worker":173},"rustEmitted":{"async":172,"worker":173},"foreign":0,"disorder":0,"running":2}
+S5LIVE {"code":"v2","ids":{"async":216286000,"worker":216286001},"recv":{"async":197,"worker":198},"rustEmitted":{"async":197,"worker":198},"foreign":0,"disorder":0,"running":2}
+S5LIVE {"code":"v2","ids":{"async":216286000,"worker":216286001},"recv":{"async":222,"worker":223},"rustEmitted":{"async":222,"worker":223},"foreign":0,"disorder":0,"running":2}
+S5LIVE {"code":"v2","ids":{"async":216286000,"worker":216286001},"recv":{"async":246,"worker":247},"rustEmitted":{"async":246,"worker":247},"foreign":0,"disorder":0,"running":2}
+S5LIVE {"code":"v2","ids":{"async":216286000,"worker":216286001},"recv":{"async":271,"worker":272},"rustEmitted":{"async":271,"worker":272},"foreign":0,"disorder":0,"running":2}
+
+Performing hot restart...                                       
+Restarted application in 327ms.
+Fail to post message to Dart. (If happen during Flutter hot restart, this may not be a problem.)
+Fail to post message to Dart. (If happen during Flutter hot restart, this may not be a problem.)
+Fail to post message to Dart. (If happen during Flutter hot restart, this may not be a problem.)
+Fail to post message to Dart. (If happen during Flutter hot restart, this may not be a problem.)
+S5LIVE {"code":"v2","ids":{"async":363347000,"worker":363347001},"recv":{"async":25,"worker":25},"rustEmitted":{"async":25,"worker":25},"foreign":0,"disorder":0,"running":2}
+S5LIVE {"code":"v2","ids":{"async":363347000,"worker":363347001},"recv":{"async":50,"worker":50},"rustEmitted":{"async":50,"worker":50},"foreign":0,"disorder":0,"running":2}
+S5LIVE {"code":"v2","ids":{"async":363347000,"worker":363347001},"recv":{"async":74,"worker":74},"rustEmitted":{"async":75,"worker":75},"foreign":0,"disorder":0,"running":2}
+S5LIVE {"code":"v2","ids":{"async":363347000,"worker":363347001},"recv":{"async":99,"worker":99},"rustEmitted":{"async":99,"worker":99},"foreign":0,"disorder":0,"running":2}
+S5LIVE {"code":"v2","ids":{"async":363347000,"worker":363347001},"recv":{"async":124,"worker":124},"rustEmitted":{"async":124,"worker":124},"foreign":0,"disorder":0,"running":2}
+S5LIVE {"code":"v2","ids":{"async":363347000,"worker":363347001},"recv":{"async":148,"worker":148},"rustEmitted":{"async":148,"worker":148},"foreign":0,"disorder":0,"running":2}
+S5LIVE {"code":"v2","ids":{"async":363347000,"worker":363347001},"recv":{"async":173,"worker":173},"rustEmitted":{"async":173,"worker":173},"foreign":0,"disorder":0,"running":2}
+S5LIVE {"code":"v2","ids":{"async":363347000,"worker":363347001},"recv":{"async":198,"worker":198},"rustEmitted":{"async":198,"worker":198},"foreign":0,"disorder":0,"running":2}
+S5LIVE {"code":"v2","ids":{"async":363347000,"worker":363347001},"recv":{"async":222,"worker":222},"rustEmitted":{"async":222,"worker":222},"foreign":0,"disorder":0,"running":2}
+
+Application finished.

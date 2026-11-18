@@ -1,0 +1,21 @@
+[package]
+name = "s5_bridge"
+edition.workspace = true
+version.workspace = true
+publish.workspace = true
+
+[lib]
+crate-type = ["staticlib", "cdylib"]
+
+[dependencies]
+# Seul crate du workspace qui dépend de FRB ; version exacte (règle 4 de l'ADR-03).
+flutter_rust_bridge = "=2.13.0"
+s5_core = { path = "../core" }
+
+[lints.rust]
+unexpected_cfgs = { level = "warn", check-cfg = ['cfg(frb_expand)'] }
+
+[lints.clippy]
+unwrap_used = "deny"
+expect_used = "deny"
+panic = "deny"

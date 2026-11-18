@@ -1,0 +1,6 @@
+[toolchain]
+# Natif (hook native-assets) : native_toolchain_rust exige une version concrète.
+# Le web n'utilise PAS ce fichier : build-web force RUSTUP_TOOLCHAIN
+# (voir README : --wasm-pack-rustup-toolchain nightly-2026-11-15).
+channel = "1.100.0"
+targets = ["x86_64-unknown-linux-gnu"]

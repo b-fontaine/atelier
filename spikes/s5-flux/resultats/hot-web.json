@@ -1,0 +1,74 @@
+{
+  "target": "web",
+  "etapes": [
+    {
+      "etape": "depart",
+      "at": 1795001279656,
+      "code": "v1",
+      "ids": {
+        "async": 114442000,
+        "worker": 114442001
+      },
+      "recv": {
+        "async": 87,
+        "worker": 99
+      },
+      "rustEmitted": {
+        "async": 87,
+        "worker": 99
+      },
+      "foreign": 0,
+      "disorder": 0,
+      "running": 2
+    },
+    {
+      "etape": "rechargement_a_chaud",
+      "pris_en_compte": true,
+      "at": 1795001283159,
+      "code": "v2",
+      "ids": {
+        "async": 114442000,
+        "worker": 114442001
+      },
+      "recv": {
+        "async": 257,
+        "worker": 271
+      },
+      "rustEmitted": {
+        "async": 257,
+        "worker": 271
+      },
+      "foreign": 0,
+      "disorder": 0,
+      "running": 2
+    },
+    {
+      "etape": "redemarrage_a_chaud",
+      "pris_en_compte": true,
+      "at": 1795001288141,
+      "code": "v2",
+      "ids": {
+        "async": 475490000,
+        "worker": 475490001
+      },
+      "recv": {
+        "async": 215,
+        "worker": 222
+      },
+      "rustEmitted": {
+        "async": 215,
+        "worker": 222
+      },
+      "foreign": 435,
+      "disorder": 0,
+      "running": 4
+    }
+  ],
+  "crossOriginIsolated": true,
+  "erreurs": [
+    "══╡ EXCEPTION CAUGHT BY SCHEDULER LIBRARY ╞═════════════════════════════════════════════════════════\nThe following assertion was thrown during a scheduler callback:\nAssertion failed: org-dartlang-sdk:///lib/_engine/engine/window.dart:121:12\n!isDisposed\n\"Trying to render a disposed EngineFlutterView.\"\n\nWhen the exception was thrown, this was the stack:\ndart-sdk/lib/_internal/js_dev_runtime/private/ddc_runtime/errors.dart 274:3       throw_\ndart-sdk/lib/_internal/js_dev_runtime/private/ddc_runtime/errors.dart 44:3        assertFailed\nlib/_engine/engine/window.dart 121:13                                             render\npackage:flutter/src/rendering/view.dart 360:7                                     compositeFrame\npackage:flutter/src/rendering/binding.dart 697:19                                 drawFrame\npackage:flutter/src/widgets/binding.dart 1587:13                                  drawFrame\npackage:flutter/src/rendering/binding.dart 558:5                                  [_handlePersistentFrameCallback]\ndart-sdk/lib/_internal/js_dev_runtime/private/ddc_runtime/operations.dart 118:77  tear\npackage:flutter/src/scheduler/binding.dart 1433:7                                 [_invokeFrameCallback]\npackage:flutter/src/scheduler/binding.dart 1348:9                                 handleDrawFrame\npackage:flutter/src/scheduler/binding.dart 1201:5                                 [_handleDrawFrame]\ndart-sdk/lib/_internal/js_dev_runtime/private/ddc_runtime/operations.dart 118:77  tear\nlib/_engine/engine/platform_dispatcher.dart 1803:5                                invoke\nlib/_engine/engine/platform_dispatcher.dart 289:5                                 invokeOnDrawFrame\nlib/_engine/engine/frame_service.dart 209:32                                      [_renderFrame]\nlib/_engine/engine/frame_service.dart 117:9                                       <fn>\ndart-sdk/lib/async/zone.dart 843:24                                               [_runUnaryZoned]\ndart-sdk/lib/async/zone.dart 572:28                                               <fn>\ndart-sdk/lib/_internal/js_dev_runtime/patch/js_allow_interop_patch.dart 218:27    _callDartFunctionFast1\ndart-sdk/lib/_internal/js_dev_runtime/patch/js_allow_interop_patch.dart 78:15     ret\n════════════════════════════════════════════════════════════════════════════════════════════════════",
+    "pageerror: Identifier 'wasm_bindgen' has already been declared",
+    "WebSocket connection to 'ws://127.0.0.1:8864/$dwdsSseHandler' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED",
+    "Unhandled error detected in the injected client.js script.\n\nYou can disable this script in webdev by passing --no-injected-client if it\nis preventing your app from loading, but note that this will also prevent\nall debugging and hot reload/restart functionality from working.\n\nThe original error is below, please file an issue at\nhttps://github.com/dart-lang/webdev/issues/new and attach this output:\n\nWebSocketConnectionClosed: Connection Closed\n\n    at Object.throwExpression (http://127.0.0.1:8864/dwds/src/injected/client.js:1307:64)\n    at PersistentWebSocket._writeToWebSocket$1 (http://127.0.0.1:8864/dwds/src/injected/client.js:17517:13)\n    at tear_off.<anonymous> (http://127.0.0.1:8864/dwds/src/injected/client.js:1632:45)\n    at Zone._runUnaryZoned$2$3 (http://127.0.0.1:8864/dwds/src/injected/client.js:13278:27)\n    at Zone.runUnaryGuarded$1$2 (http://127.0.0.1:8864/dwds/src/injected/client.js:13178:20)\n    at _ControllerSubscription._sendData$1 (http://127.0.0.1:8864/dwds/src/injected/client.js:12714:19)\n    at _DelayedData.perform$1 (http://127.0.0.1:8864/dwds/src/injected/client.js:12889:59)\n    at _PendingEvents_schedule_closure.call$0 (http://127.0.0.1:8864/dwds/src/injected/client.js:12948:14)\n    at Zone._runZoned$1$2 (http://127.0.0.1:8864/dwds/src/injected/client.js:13256:27)\n    at Zone.runGuarded$1 (http://127.0.0.1:8864/dwds/src/injected/client.js:13165:20)\n    at Zone_bindCallbackGuarded_closure.call$0 (http://127.0.0.1:8864/dwds/src/injected/client.js:13388:25)\n    at Zone._runZoned$1$2 (http://127.0.0.1:8864/dwds/src/injected/client.js:13260:25)\n    at Zone.runGuarded$1 (http://127.0.0.1:8864/dwds/src/injected/client.js:13165:20)\n    at Zone_bindCallbackGuarded_closure.call$0 (http://127.0.0.1:8864/dwds/src/injected/client.js:13388:25)\n    at Object._microtaskLoop (http://127.0.0.1:8864/dwds/src/injected/client.js:4128:24)\n    at StaticClosure._startMicrotaskLoop (http://127.0.0.1:8864/dwds/src/injected/client.js:4134:11)\n    at _AsyncRun__initializeScheduleImmediate_internalCallback.call$1 (http://127.0.0.1:8864/dwds/src/injected/client.js:11676:9)"
+  ]
+}

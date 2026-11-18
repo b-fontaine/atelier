@@ -1,0 +1,85 @@
+S5RESULT {"name":"ping","status":"ok","detail":"ping 10 ms","ms":13}
+S5RESULT {"name":"rafale_async_1000","status":"ok","detail":"1000 reçus dans l'ordre en 28 ms","ms":32}
+S5RESULT {"name":"rafale_worker_1000","status":"ok","detail":"1000 reçus dans l'ordre en 22 ms","ms":23}
+S5RESULT {"name":"rafale_async_10000","status":"ok","detail":"10000 reçus dans l'ordre en 367 ms","ms":369}
+S5RESULT {"name":"rafale_worker_10000","status":"ok","detail":"10000 reçus dans l'ordre en 334 ms","ms":336}
+S5RESULT {"name":"simultanes_4","status":"ok","detail":"4 flux simultanés complets et ordonnés","ms":250}
+S5RESULT {"name":"consommateur_lent_async","status":"ok","detail":"300 reçus dans l'ordre malgré les pauses","ms":94}
+S5RESULT {"name":"consommateur_lent_worker","status":"ok","detail":"300 reçus dans l'ordre malgré les pauses","ms":92}
+S5RESULT {"name":"annulation_async","status":"ok","detail":"arrêt Rust : sendError, 0 émission(s) après l'annulation","ms":1106}
+S5RESULT {"name":"annulation_worker","status":"ok","detail":"arrêt Rust : sendError, 0 émission(s) après l'annulation","ms":1105}
+S5RESULT {"name":"annulation_explicite_async","status":"ok","detail":"arrêt Rust : stopRequested, 0 émission(s) après l'annulation","ms":1111}
+S5RESULT {"name":"annulation_explicite_worker","status":"ok","detail":"arrêt Rust : stopRequested, 0 émission(s) après l'annulation","ms":1109}
+S5RESULT {"name":"reabonnement","status":"ok","detail":"100/100 puis 50/50 après réabonnement ; ancien émetteur arrêté au moment du réabonnement","ms":421}
+S5RESULT {"name":"erreur_add_error","status":"echec","detail":"ordre 0,1,2,E","ms":5}
+S5RESULT {"name":"erreur_return_err","status":"echec","detail":"Err renvoyé par la fonction : flux fermé normalement, erreur hors du flux : erreur asynchrone non interceptée (BridgeError)","ms":204}
+S5RESULT {"name":"repli_requete_notification","status":"ok","detail":"1000/1000 via 10 relectures pour 1001 notifications ; 0 observateur restant","ms":34}
+S5RESULT {"name":"emetteurs_restants","status":"info","detail":"0 émetteur(s) Rust encore en cours en fin de série","ms":0}
+S5RESULT {"name":"ping","status":"ok","detail":"ping 10 ms","ms":13}
+S5RESULT {"name":"rafale_async_1000","status":"ok","detail":"1000 reçus dans l'ordre en 29 ms","ms":32}
+S5RESULT {"name":"rafale_worker_1000","status":"ok","detail":"1000 reçus dans l'ordre en 23 ms","ms":24}
+S5RESULT {"name":"rafale_async_10000","status":"ok","detail":"10000 reçus dans l'ordre en 362 ms","ms":365}
+S5RESULT {"name":"rafale_worker_10000","status":"ok","detail":"10000 reçus dans l'ordre en 314 ms","ms":315}
+S5RESULT {"name":"simultanes_4","status":"ok","detail":"4 flux simultanés complets et ordonnés","ms":249}
+S5RESULT {"name":"consommateur_lent_async","status":"ok","detail":"300 reçus dans l'ordre malgré les pauses","ms":92}
+S5RESULT {"name":"consommateur_lent_worker","status":"ok","detail":"300 reçus dans l'ordre malgré les pauses","ms":92}
+S5RESULT {"name":"annulation_async","status":"ok","detail":"arrêt Rust : sendError, 0 émission(s) après l'annulation","ms":1105}
+S5RESULT {"name":"annulation_worker","status":"ok","detail":"arrêt Rust : sendError, 0 émission(s) après l'annulation","ms":1104}
+S5RESULT {"name":"annulation_explicite_async","status":"ok","detail":"arrêt Rust : stopRequested, 0 émission(s) après l'annulation","ms":1111}
+S5RESULT {"name":"annulation_explicite_worker","status":"ok","detail":"arrêt Rust : stopRequested, 0 émission(s) après l'annulation","ms":1109}
+S5RESULT {"name":"reabonnement","status":"ok","detail":"100/100 puis 50/50 après réabonnement ; ancien émetteur arrêté au moment du réabonnement","ms":426}
+S5RESULT {"name":"erreur_add_error","status":"echec","detail":"ordre 0,1,2,E","ms":4}
+S5RESULT {"name":"erreur_return_err","status":"echec","detail":"Err renvoyé par la fonction : flux fermé normalement, erreur hors du flux : erreur asynchrone non interceptée (BridgeError)","ms":204}
+S5RESULT {"name":"repli_requete_notification","status":"ok","detail":"1000/1000 via 10 relectures pour 1001 notifications ; 0 observateur restant","ms":34}
+S5RESULT {"name":"emetteurs_restants","status":"info","detail":"0 émetteur(s) Rust encore en cours en fin de série","ms":0}
+S5RESULT {"name":"ping","status":"ok","detail":"ping 10 ms","ms":12}
+S5RESULT {"name":"rafale_async_1000","status":"ok","detail":"1000 reçus dans l'ordre en 28 ms","ms":32}
+S5RESULT {"name":"rafale_worker_1000","status":"ok","detail":"1000 reçus dans l'ordre en 21 ms","ms":22}
+S5RESULT {"name":"rafale_async_10000","status":"ok","detail":"10000 reçus dans l'ordre en 361 ms","ms":364}
+S5RESULT {"name":"rafale_worker_10000","status":"ok","detail":"10000 reçus dans l'ordre en 314 ms","ms":315}
+S5RESULT {"name":"simultanes_4","status":"ok","detail":"4 flux simultanés complets et ordonnés","ms":238}
+S5RESULT {"name":"consommateur_lent_async","status":"ok","detail":"300 reçus dans l'ordre malgré les pauses","ms":93}
+S5RESULT {"name":"consommateur_lent_worker","status":"ok","detail":"300 reçus dans l'ordre malgré les pauses","ms":92}
+S5RESULT {"name":"annulation_async","status":"ok","detail":"arrêt Rust : sendError, 0 émission(s) après l'annulation","ms":1105}
+S5RESULT {"name":"annulation_worker","status":"ok","detail":"arrêt Rust : sendError, 0 émission(s) après l'annulation","ms":1104}
+S5RESULT {"name":"annulation_explicite_async","status":"ok","detail":"arrêt Rust : stopRequested, 0 émission(s) après l'annulation","ms":1110}
+S5RESULT {"name":"annulation_explicite_worker","status":"ok","detail":"arrêt Rust : stopRequested, 0 émission(s) après l'annulation","ms":1108}
+S5RESULT {"name":"reabonnement","status":"ok","detail":"100/100 puis 50/50 après réabonnement ; ancien émetteur arrêté au moment du réabonnement","ms":419}
+S5RESULT {"name":"erreur_add_error","status":"echec","detail":"ordre 0,1,2,E","ms":4}
+S5RESULT {"name":"erreur_return_err","status":"echec","detail":"Err renvoyé par la fonction : flux fermé normalement, erreur hors du flux : erreur asynchrone non interceptée (BridgeError)","ms":203}
+S5RESULT {"name":"repli_requete_notification","status":"ok","detail":"1000/1000 via 10 relectures pour 1001 notifications ; 0 observateur restant","ms":33}
+S5RESULT {"name":"emetteurs_restants","status":"info","detail":"0 émetteur(s) Rust encore en cours en fin de série","ms":0}
+S5RESULT {"name":"ping","status":"ok","detail":"ping 10 ms","ms":12}
+S5RESULT {"name":"rafale_async_1000","status":"ok","detail":"1000 reçus dans l'ordre en 29 ms","ms":33}
+S5RESULT {"name":"rafale_worker_1000","status":"ok","detail":"1000 reçus dans l'ordre en 22 ms","ms":24}
+S5RESULT {"name":"rafale_async_10000","status":"ok","detail":"10000 reçus dans l'ordre en 360 ms","ms":363}
+S5RESULT {"name":"rafale_worker_10000","status":"ok","detail":"10000 reçus dans l'ordre en 296 ms","ms":297}
+S5RESULT {"name":"simultanes_4","status":"ok","detail":"4 flux simultanés complets et ordonnés","ms":251}
+S5RESULT {"name":"consommateur_lent_async","status":"ok","detail":"300 reçus dans l'ordre malgré les pauses","ms":95}
+S5RESULT {"name":"consommateur_lent_worker","status":"ok","detail":"300 reçus dans l'ordre malgré les pauses","ms":94}
+S5RESULT {"name":"annulation_async","status":"ok","detail":"arrêt Rust : sendError, 0 émission(s) après l'annulation","ms":1105}
+S5RESULT {"name":"annulation_worker","status":"ok","detail":"arrêt Rust : sendError, 0 émission(s) après l'annulation","ms":1103}
+S5RESULT {"name":"annulation_explicite_async","status":"ok","detail":"arrêt Rust : stopRequested, 0 émission(s) après l'annulation","ms":1110}
+S5RESULT {"name":"annulation_explicite_worker","status":"ok","detail":"arrêt Rust : stopRequested, 0 émission(s) après l'annulation","ms":1108}
+S5RESULT {"name":"reabonnement","status":"ok","detail":"100/100 puis 50/50 après réabonnement ; ancien émetteur arrêté au moment du réabonnement","ms":421}
+S5RESULT {"name":"erreur_add_error","status":"echec","detail":"ordre 0,1,2,E","ms":4}
+S5RESULT {"name":"erreur_return_err","status":"echec","detail":"Err renvoyé par la fonction : flux fermé normalement, erreur hors du flux : erreur asynchrone non interceptée (BridgeError)","ms":203}
+S5RESULT {"name":"repli_requete_notification","status":"ok","detail":"1000/1000 via 10 relectures pour 1001 notifications ; 0 observateur restant","ms":35}
+S5RESULT {"name":"emetteurs_restants","status":"info","detail":"0 émetteur(s) Rust encore en cours en fin de série","ms":0}
+S5RESULT {"name":"ping","status":"ok","detail":"ping 10 ms","ms":12}
+S5RESULT {"name":"rafale_async_1000","status":"ok","detail":"1000 reçus dans l'ordre en 32 ms","ms":36}
+S5RESULT {"name":"rafale_worker_1000","status":"ok","detail":"1000 reçus dans l'ordre en 30 ms","ms":31}
+S5RESULT {"name":"rafale_async_10000","status":"ok","detail":"10000 reçus dans l'ordre en 344 ms","ms":347}
+S5RESULT {"name":"rafale_worker_10000","status":"ok","detail":"10000 reçus dans l'ordre en 320 ms","ms":322}
+S5RESULT {"name":"simultanes_4","status":"ok","detail":"4 flux simultanés complets et ordonnés","ms":250}
+S5RESULT {"name":"consommateur_lent_async","status":"ok","detail":"300 reçus dans l'ordre malgré les pauses","ms":99}
+S5RESULT {"name":"consommateur_lent_worker","status":"ok","detail":"300 reçus dans l'ordre malgré les pauses","ms":95}
+S5RESULT {"name":"annulation_async","status":"ok","detail":"arrêt Rust : sendError, 0 émission(s) après l'annulation","ms":1103}
+S5RESULT {"name":"annulation_worker","status":"ok","detail":"arrêt Rust : sendError, 0 émission(s) après l'annulation","ms":1103}
+S5RESULT {"name":"annulation_explicite_async","status":"ok","detail":"arrêt Rust : stopRequested, 0 émission(s) après l'annulation","ms":1111}
+S5RESULT {"name":"annulation_explicite_worker","status":"ok","detail":"arrêt Rust : stopRequested, 0 émission(s) après l'annulation","ms":1107}
+S5RESULT {"name":"reabonnement","status":"ok","detail":"100/100 puis 50/50 après réabonnement ; ancien émetteur arrêté au moment du réabonnement","ms":425}
+S5RESULT {"name":"erreur_add_error","status":"echec","detail":"ordre 0,1,2,E","ms":4}
+S5RESULT {"name":"erreur_return_err","status":"echec","detail":"Err renvoyé par la fonction : flux fermé normalement, erreur hors du flux : erreur asynchrone non interceptée (BridgeError)","ms":204}
+S5RESULT {"name":"repli_requete_notification","status":"ok","detail":"1000/1000 via 10 relectures pour 1001 notifications ; 0 observateur restant","ms":34}
+S5RESULT {"name":"emetteurs_restants","status":"info","detail":"0 émetteur(s) Rust encore en cours en fin de série","ms":0}
