@@ -14,6 +14,7 @@ Chaque affirmation factuelle porte un marqueur. Ne promeus jamais un `[J]` ou un
 |---|---|
 | `[V]` | Vérifié par vote contradictoire (3 vérificateurs indépendants, 3-0) sur source primaire. |
 | `[P]` | Lu sur source primaire (doc officielle, dépôt, registre) par un seul agent de recherche, sans contre-vérification. |
+| `[E]` | Établi par un essai mené dans ce dépôt, consigné dans une ADR de `docs/architecture/adr/`. Vaut pour les versions et le périmètre de l'essai. |
 | `[S]` | Source secondaire (blog, retour d'expérience d'un seul auteur, contenu d'éditeur). |
 | `[J]` | Jugement d'ingénierie de l'auteur de l'étude : raisonné, mais non sourcé. |
 | `[NV]` | Non vérifié ou non trouvé. À établir par un essai (voir §14) avant de s'y fier. |
@@ -516,8 +517,9 @@ Tester les styles par assertion directe sur le `Buffer` pour les quelques cas o�
 - **Source de vérité : `features/` à la racine.** Organisation par contexte borné : `features/<contexte>/<capacité>.feature`.
 - **cucumber-rs** (0.23.0 `[P]`) lit ce dossier directement : le chemin des features est un argument du lanceur, non lié au crate `[P]`.
 - **bdd_widget_test** (3.1.0 `[P]`) est un générateur `build_runner` : le `.dart` est produit à côté du `.feature`, dans le paquet racine ; les sources de build sont limitées aux fichiers du paquet `[P]`. Il ne peut donc pas lire `features/` à la racine.
-- Liens symboliques : comportement des `build_runner` actuels et sous Windows `[NV]`. **Ne pas s'y fier.**
-- **Décision** `[J]` : un outil `tool/sync_features` copie les `.feature` étiquetés pour la GUI vers `packages/app/test/features/`. Les copies sont versionnées ; la CI exécute `sync_features --check` et échoue en cas d'écart. Les `_test.dart` générés ne sont jamais édités ; les fichiers d'étapes sont créés une fois puis maintenus à la main `[P]`.
+- Liens symboliques : **écartés** `[E]` (S4, Linux). `build_runner` suit le lien mais écrit ses fichiers générés dans le dossier source, et `flutter test` ne découvre pas les tests sous un répertoire lié.
+- **Décision**, confirmée par l'essai S4 `[E]` : un outil `tool/sync_features` copie vers `packages/app/test/features/` les `.feature` qui contiennent `@gui` (granularité : le fichier). Il supprime les copies orphelines. Les copies sont versionnées ; la CI exécute `sync_features --check`, qui échoue sur un fichier modifié, manquant ou orphelin. Modèle : `spikes/s4-gherkin/app/tool/sync_features.dart`.
+- **Un fichier `.feature` ne mélange pas les cibles** `[E]` : un scénario sans `@gui` placé dans un fichier copié est quand même généré côté Dart, avec des étapes en `UnimplementedError`. Les scénarios réservés au cœur vont donc dans des fichiers sans aucun `@gui`. Les `_test.dart` générés ne sont jamais édités ; les fichiers d'étapes sont créés une fois puis maintenus à la main `[P]`.
 
 Exemples réels de spécification Gherkin partagée entre implémentations : `typedb/typedb-behaviour` (dépôt de `.feature` consommé par plusieurs langages, étiquettes d'exclusion par implémentation), `open-feature/spec`, `cucumber/compatibility-kit` `[P]`.
 
@@ -534,7 +536,9 @@ Exemples réels de spécification Gherkin partagée entre implémentations : `ty
 
 Une TUI en parité porte `@tui` partout ; une TUI en sous-ensemble ne le porte que sur les scénarios retenus. La CI publie la **matrice scénario × cible** : c'est la mesure objective de la parité `[J]`.
 
-Filtrage : `flutter test --tags gui` / `--exclude-tags` côté Dart ; `--tags` avec expressions et `filter_run()` côté cucumber-rs `[P]`.
+Filtrage `[E]` (S4) :
+- Dart : **par inclusion**, `flutter test --tags gui`. `--exclude-tags core` est faux dès qu'un scénario porte `@core @gui` : tout est exclu. Déclarer les étiquettes dans `dart_test.yaml`, sinon Flutter avertit.
+- cucumber-rs : filtre sur les étiquettes du scénario, de sa règle et de la feature, avec `filter_run_and_exit`.
 
 ### 8.3 Dialecte Gherkin commun
 
@@ -546,12 +550,17 @@ Les deux exécutants ne lisent pas le même Gherkin. Règles pour les fichiers p
 | Pas de doc strings | parsées mais ignorées par `bdd_widget_test` `[P]` |
 | Pas d'étiquette contenant un espace (`@testMethodName: …`) | invalide en Gherkin standard ; mettre ces options dans `build.yaml` `[P]` |
 | Pas du mot-clé `After` | hors standard, propre à `bdd_widget_test` `[P]` |
-| Paramètres écrits en clair : `"texte"` et nombres nus | par défaut `bdd_widget_test` attend la valeur entre accolades dans le `.feature` (`{42}`), ce qui est incompatible avec cucumber-rs où `{int}` figure dans la définition d'étape. Activer `literalParameters: true` (3.0.5+) pour converger `[P]`. Comportement sur flottants et mots isolés `[NV]`. |
+| Paramètres écrits en clair : `"texte"` et nombres nus | par défaut `bdd_widget_test` attend la valeur entre accolades dans le `.feature` (`{42}`), ce qui est incompatible avec cucumber-rs où `{int}` figure dans la définition d'étape. Activer `literalParameters: true` (3.0.5+) pour converger `[P]`. Établi par S4 `[E]` : entiers et flottants deviennent des paramètres typés `num` côté Dart ; un mot isolé n'est **pas** un paramètre, l'écrire entre guillemets ; la chaîne vide `""` passe des deux côtés. |
 | `# language: fr` autorisé | supporté des deux côtés `[P]` |
-| `Rule`, `Background`, `Scenario Outline`, tables de données autorisés | supportés des deux côtés depuis `bdd_widget_test` 3.0.0 (parseur officiel `cucumber_gherkin`) `[P]` |
+| `Rule`, `Background`, `Scenario Outline`, tables de données autorisés | supportés des deux côtés depuis `bdd_widget_test` 3.0.0 (parseur officiel `cucumber_gherkin`) `[P]` ; confirmé en français par S4 `[E]`, sauf le `Contexte` propre à une règle, non essayé `[NV]` |
+| Cellules de table de données : chaînes entre guillemets (`\| "Courses" \| 1 \|`), en-têtes compris | `bdd_widget_test` insère chaque cellule comme du code Dart ; côté Rust, retirer les guillemets. Les tables `Exemples` restent du texte brut `[E]` |
+| `<paramètre>` de plan de scénario : entre guillemets pour une chaîne | hors guillemets, l'étape générée est typée `dynamic`, à retyper à la main `[E]` |
+| Pas de forme optionnelle ni de pluriel (`note(s)`) | n'existe pas côté Dart : deux phrases donnent deux étapes distinctes `[E]` |
 | Étapes déclaratives, au niveau métier | la même phrase doit avoir un sens pour le cœur, un écran et un terminal `[J]` |
 
-Les définitions d'étapes sont écrites séparément par langage. Un scénario exclu par étiquette reste généré côté Dart ; des étapes vides sont probablement nécessaires `[NV]`.
+Les définitions d'étapes sont écrites séparément par langage.
+
+**Défaut connu du générateur** `[E]` : la première génération des fichiers d'étapes a corrompu un fichier partagé par plusieurs scénarios deux fois sur trois (octets résiduels en fin de fichier), cause non diagnostiquée. Après toute création de fichiers d'étapes, lance `dart analyze` et relis les fichiers créés avant de continuer.
 
 Alternative Dart à connaître : `gherkart` 0.2.1 lit des `.feature` à l'exécution depuis un chemin arbitraire, ce qui supprimerait la copie, mais il est très jeune (340 téléchargements) `[P]`. Les paquets `gherkin` et `flutter_gherkin` sont à l'arrêt de fait `[P]`.
 
@@ -560,7 +569,7 @@ Alternative Dart à connaître : `gherkart` 0.2.1 lit des `.feature` à l'exécu
 ```
 1. Écrire le scénario dans features/ (@core, puis @gui/@tui selon le périmètre).
 2. Boucle extérieure ROUGE : cucumber-rs @core échoue sur une étape non implémentée
-   (fail_on_skipped activé : une étape sans définition fait échouer la suite [P]).
+   (fail_on_skipped activé, lanceur terminé par run_and_exit ou filter_run_and_exit [E]).
 3. Boucle intérieure dans domain/ puis application/ :
      test unitaire rouge → code minimal vert → refactor → linters vierges.   (répéter)
 4. Boucle extérieure VERTE côté cœur.
@@ -571,6 +580,8 @@ Alternative Dart à connaître : `gherkart` 0.2.1 lit des `.feature` à l'exécu
 6. Si @e2e : scénario d'intégration avec le vrai cœur.
 7. Gates locales complètes (§11.2) avant commit.
 ```
+
+Le lanceur cucumber-rs DOIT se terminer par `run_and_exit` ou `filter_run_and_exit` `[E]` : avec `.run()` ou `.filter_run()`, le processus rend le code 0 même quand des scénarios échouent, et la CI ne voit rien.
 
 Règles pour l'agent :
 - NE JAMAIS écrire de code de production sans test rouge préalable de la bonne boucle. Périmètre : tout fichier non généré sous `crates/*/src` ou `packages/*/lib`. Exclus : squelette de l'étape 1 du §15, code généré, configuration de build et de CI.
@@ -622,13 +633,30 @@ Faits :
 - `dtcg_theme` 0.7.1 : génère un `ThemeExtension` par mode, mode `--check` pour la CI ; paquet très jeune `[P]`. Alternative : `design_builder` 1.0.1 `[S]`.
 - Aucun générateur DTCG → ratatui trouvé `[NV]`.
 
-**Décision** `[J]` : Style Dictionary avec deux formats personnalisés (Dart `ThemeExtension`, Rust `ratatui::style::Color`). S'en tenir au sous-ensemble de 2025.10 effectivement supporté. Les sorties sont versionnées et vérifiées en CI.
+Établi par l'essai S6 `[E]` (Style Dictionary 5.8.0, Node 26.13.1, ratatui 0.30.2) :
+- Un format personnalisé enregistré par `hooks.formats` tient en une fonction d'environ 25 lignes et suffit à émettre la palette Rust ; le repli par générateur maison est inutile.
+- Fonctionnent : couleurs en objet `srgb`, alias `{a.b}`, `$extensions` transmis au format, plusieurs formats sur une même source. `oklch` et `display-p3` sont convertis en hex sRGB avec écrêtage.
+- **Ne fonctionnent pas : `$extends` et `$ref`**, non résolus. Les dimensions en objet passent sans transformation. Un `components` contenant `none` est converti en silence.
+- DTCG 2025.10 n'a pas de modes natifs. Convention retenue : groupes `mode.<nom>.*` dans le fichier source.
+- Sans transformation de nom, les jetons de même nom entre modes entrent en collision.
+- Non essayés `[NV]` : plusieurs fichiers de jetons, jetons composites (`shadow`, `typography`, `border`), cycle d'alias.
+
+**Décision**, confirmée pour la cible Rust `[E]` : Style Dictionary avec formats personnalisés (Rust `ratatui::style::Color`, Dart `ThemeExtension`, CSS). Règles :
+- Les fichiers de jetons NE DOIVENT PAS utiliser `$extends` ni `$ref`.
+- La plateforme DOIT déclarer `name/kebab` (ou équivalent) et `log.warnings: 'error'`.
+- Le format Rust DOIT lever une erreur sur une couleur avec transparence.
+- Contrôle de dérive : régénérer dans un dossier temporaire et comparer octet à octet aux fichiers versionnés (modèle : `spikes/s6-jetons/check.mjs`), ce qui ne salit pas l'arbre de travail.
+- **Reste à faire** : l'essai n'a produit côté Dart que des constantes, non compilées. La génération du `ThemeExtension` et sa compilation ne sont pas établies `[NV]`.
 
 ### 9.2 Tokens dans le terminal
 
-`[J]`, détection de capacités `[NV]` :
-- Couleur sRGB → `Color::Rgb` en truecolor ; repli sur l'index 256 le plus proche, puis sur les 16 couleurs ANSI.
-- Respecter `NO_COLOR` ; détecter truecolor par `COLORTERM`.
+Implémenté et testé par S6 `[E]` :
+- Couleur sRGB → `Color::Rgb` en truecolor ; repli sur l'index xterm-256 le plus proche, puis sur les 16 couleurs ANSI. Ce dernier repli est approximatif par nature : il dépend de la palette du terminal.
+- Précédence de détection : `NO_COLOR` non vide, puis `COLORTERM` (`truecolor`, `24bit`), puis `TERM` (`*256color*`), sinon 16 couleurs. La détection reçoit l'environnement en paramètre pour rester testable.
+- Sous `NO_COLOR`, conserver les modificateurs et ajouter l'inversion pour que les atomes colorés restent lisibles.
+- `Modifier` est `const` : la palette peut être une constante.
+
+`[J]` :
 - Espacement, rayon, typographie n'ont pas d'équivalent : les tokens sémantiques (`surface`, `accent`, `danger`, `emphasis`) se traduisent en couleurs et en modificateurs (gras, inversé, souligné).
 - L'atomic design s'applique à la TUI au niveau des atomes et molécules ratatui dans `crates/tui/src/widgets/`.
 
@@ -790,9 +818,9 @@ Chaque essai est un prototype jetable, borné dans le temps, avec un critère de
 | **S1** | FRB 2.13.0, backend `native-assets`, crate `bridge` dans le Cargo workspace, Flutter 3.50 | Une fonction async et un flux appelés depuis Flutter sur Linux, Android et un appareil Apple | Backend `cargokit` ; ou attendre FRB 2.14. La CI de FRB cible Flutter 3.47 : compatibilité 3.50 `[NV]` |
 | **S2** | Cœur en WASM : `build-web`, `rusqlite` + VFS `sahpool`, écriture, rechargement de page, relecture ; second onglet | Donnée relue après rechargement sur Chrome, Firefox et Safari ; second onglet détecté proprement | Plan B ou C (ADR-07) |
 | **S3** | En-têtes `COOP: same-origin` + `COEP: require-corp` sur l'hébergeur visé ; connexion par redirection | `crossOriginIsolated` vrai sur Safari ; connexion fonctionnelle | Mode sans en-têtes (`default_dart_async: false`), avec perte de réactivité |
-| **S4** | Un `.feature` partagé : cucumber-rs + `bdd_widget_test` avec `literalParameters`, `# language: fr`, une table, un `Scenario Outline`, une étiquette d'exclusion | Les deux exécutants passent sur le même fichier ; `sync_features --check` détecte un écart | Dialecte plus restreint, ou `gherkart` |
+| **S4** ✅ | **Réussi le 2026-11-18** (`adr/S4-gherkin-partage.md`), dialecte plus étroit que prévu : voir §8. Énoncé d'origine : un `.feature` partagé : cucumber-rs + `bdd_widget_test` avec `literalParameters`, `# language: fr`, une table, un `Scenario Outline`, une étiquette d'exclusion | Les deux exécutants passent sur le même fichier ; `sync_features --check` détecte un écart | Dialecte plus restreint, ou `gherkart` |
 | **S5** | Flux FRB sur le web : 1 000 émissions, annulation d'abonnement, rechargement à chaud | Aucune perte, aucun blocage | Repli sur requêtes ponctuelles + notification de changement |
-| **S6** | Format Style Dictionary personnalisé vers Rust | Palette ratatui générée et utilisée par un atome | Générateur `build.rs` maison |
+| **S6** ✅ | **Réussi le 2026-11-18** (`adr/S6-jetons-ratatui.md`) ; reste la sortie Dart `ThemeExtension`. Énoncé d'origine : format Style Dictionary personnalisé vers Rust | Palette ratatui générée et utilisée par un atome | Générateur `build.rs` maison |
 
 Autres risques suivis :
 
@@ -861,7 +889,7 @@ Chaque étape se termine par les gates vertes et un commit.
 | wasm-pack | 0.15.1 | `[P]` |
 | Leptos / cargo-leptos | 0.8.23 / 0.3.11 | `[P]` |
 | Jaspr | 0.23.5 | `[P]` |
-| Style Dictionary | 5.8.0 | `[P]` |
+| Style Dictionary / Node | 5.8.0 / 26.13.1 | `[E]` |
 | uhlc | 0.9.0 | `[P]` |
 | cargo-ndk / xcframework / cargo-zigbuild | 4.1.2 / 0.2.1 / 0.24.1 | `[P]` |
 | Fastforge / msix / fastlane / dist | 0.6.14 / 3.18.0 / 2.241.2 / 0.34.0 | `[P]` |
@@ -872,7 +900,7 @@ Chaque étape se termine par les gates vertes et un commit.
 
 - La recherche principale a extrait 120 affirmations de 27 sources et en a vérifié 25 par vote contradictoire (25 confirmées, 0 réfutée). Elles couvrent FRB, Crux, UniFFI-Dart, PowerSync, Loro et Flutter Web. **Tout le reste** (TUI, monorepo, Gherkin partagé, tokens, CI, empaquetage, retours d'expérience, alternatives, persistance web) vient de cinq recherches complémentaires lues sur sources primaires par un seul agent chacune, sans contre-vérification.
 - Les sources sont surtout des documentations d'éditeurs : fiables sur ce que fait le produit, auto-déclaratives sur sa maturité.
-- Aucun assemblage n'a été compilé ni exécuté. La recommandation est un plan à valider par les essais du §14, pas un résultat d'expérience.
+- À l'origine, aucun assemblage n'avait été compilé. Depuis, les essais S4 et S6 ont été menés (2026-11-18, Linux, prototypes jetables dans `spikes/`) ; leurs ADR font foi pour le détail. S1, S2, S3 et S5 restent à faire : le pont, le web applicatif et le stockage dans le navigateur ne sont toujours pas validés par l'expérience.
 - Les arbitrages (a)/(b), Leptos/Jaspr/Astro et moteur de synchronisation maison sont des jugements, étayés mais non démontrés.
 
 ---

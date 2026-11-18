@@ -121,7 +121,8 @@ footer{margin-top:56px;color:var(--muted);font-size:.9rem;border-top:1px solid v
     <span class="tag t-v">vérifié</span> confirmé par trois vérificateurs indépendants sur source officielle ·
     <span class="tag t-p">source primaire</span> lu dans une doc ou un dépôt officiel, sans contre-vérification ·
     <span class="tag t-j">jugement</span> choix d'ingénierie raisonné, non sourcé ·
-    <span class="tag t-n">à tester</span> non vérifié, à établir par un essai.
+    <span class="tag t-n">à tester</span> non vérifié, à établir par un essai ·
+    <span class="tag t-v">essai réussi</span> établi par un prototype mené dans ce dépôt.
   </p>
 </div>
 
@@ -469,7 +470,7 @@ footer{margin-top:56px;color:var(--muted);font-size:.9rem;border-top:1px solid v
     <text class="small" x="720" y="234" text-anchor="middle">tests de widgets Flutter</text>
   </svg>
   </div>
-  <figcaption>Pourquoi une copie côté Flutter : <code>bdd_widget_test</code> génère ses tests à côté des <code>.feature</code> et ne lit que les fichiers du paquet <span class="tag t-p">source primaire</span>. La CI échoue si la copie s'écarte de la source.</figcaption>
+  <figcaption>Pourquoi une copie côté Flutter : <code>bdd_widget_test</code> génère ses tests à côté des <code>.feature</code> et ne lit que les fichiers du paquet <span class="tag t-p">source primaire</span>. La CI échoue si la copie s'écarte de la source. Montage validé par un prototype <span class="tag t-v">essai réussi</span> ; les liens symboliques, essayés, ne fonctionnent pas.</figcaption>
 </figure>
 
 <h3>Un dialecte commun à respecter</h3>
@@ -477,6 +478,7 @@ footer{margin-top:56px;color:var(--muted);font-size:.9rem;border-top:1px solid v
 <ul>
   <li>un seul bloc <code>Feature:</code> par fichier, pas de <i>doc strings</i>, pas d'étiquette contenant un espace <span class="tag t-p">source primaire</span> ;</li>
   <li>paramètres écrits en clair (<code>"texte"</code>, nombres nus) avec l'option <code>literalParameters</code> de <code>bdd_widget_test</code> <span class="tag t-p">source primaire</span> ;</li>
+  <li>dans les tables de données, les textes s'écrivent entre guillemets ; un fichier ne mélange pas scénarios d'écran et scénarios réservés au cœur <span class="tag t-v">essai réussi</span> ;</li>
   <li>étapes formulées au niveau métier, pour avoir un sens devant un écran comme devant un terminal.</li>
 </ul>
 
@@ -501,7 +503,8 @@ footer{margin-top:56px;color:var(--muted);font-size:.9rem;border-top:1px solid v
   <div><b>TUI</b>palette ratatui</div>
 </div>
 <ul>
-  <li>Outil : Style Dictionary 5, avec deux formats à écrire soi-même (Dart et Rust). Aucun générateur vers ratatui n'existe <span class="tag t-n">à tester</span>.</li>
+  <li>Outil : Style Dictionary 5, avec des formats à écrire soi-même. Le format vers ratatui tient en une vingtaine de lignes <span class="tag t-v">essai réussi</span> ; la sortie Dart en extension de thème reste à faire <span class="tag t-n">à tester</span>.</li>
+  <li>Deux écueils relevés par l'essai : le standard n'a pas de modes clair/sombre natifs (on adopte une convention de nommage), et deux mécanismes d'héritage du standard ne sont pas gérés par l'outil.</li>
   <li>Dans le terminal, les couleurs se dégradent de 16 millions à 256 puis à 16 ; espacement et typographie n'ont pas d'équivalent.</li>
   <li>Atomic design : atomes, molécules et organismes dans un paquet <code>design_system</code> sans dépendance au cœur ; chacun a son cas d'usage Widgetbook et son test visuel.</li>
   <li>Widgetbook 3.25 ; la version 4 est en bêta. <code>golden_toolkit</code> est abandonné, <code>alchemist</code> le remplace <span class="tag t-p">source primaire</span>.</li>
@@ -536,15 +539,15 @@ footer{margin-top:56px;color:var(--muted);font-size:.9rem;border-top:1px solid v
 <p>À garder en tête : le cabinet Very Good Ventures juge un cœur Rust excessif pour une application qui se résume à une API et une base locale. Sans TUI ni site public à alimenter, cet avis s'appliquerait.</p>
 
 <h2 id="risques">13. Risques et essais préalables</h2>
-<p>Rien de cette étude n'a été compilé. Six prototypes courts doivent confirmer les points fragiles. À mener en premier : S1 et S4. S2, S3 et S5 conditionnent le web applicatif.</p>
+<p>Six prototypes courts doivent confirmer les points fragiles. Deux sont faits (S4 et S6, le 18 novembre 2026). S1 est le prochain ; S2, S3 et S5 conditionnent le web applicatif.</p>
 <div class="tablewrap"><table>
   <tr><th>#</th><th>Essai</th><th>Si échec</th></tr>
   <tr><td>S1</td><td>Le pont dans le monorepo, avec Native Assets et Flutter 3.50, sur Linux, Android et Apple</td><td>Revenir à cargokit</td></tr>
   <tr><td>S2</td><td>Cœur en WASM avec SQLite persistant ; rechargement de page ; second onglet</td><td>Plan B ou C de stockage</td></tr>
   <tr><td>S3</td><td>En-têtes d'isolation sur l'hébergeur visé, connexion par redirection, sur Safari</td><td>Mode mono-fil du pont, moins réactif</td></tr>
-  <tr><td>S4</td><td>Un même <code>.feature</code> exécuté par cucumber-rs et <code>bdd_widget_test</code></td><td>Dialecte plus restreint</td></tr>
+  <tr><td>S4 ✅</td><td>Un même <code>.feature</code> exécuté par cucumber-rs et <code>bdd_widget_test</code> : <b>réussi</b>, avec un dialecte plus étroit que prévu</td><td>—</td></tr>
   <tr><td>S5</td><td>Flux du pont sur le web, en charge</td><td>Requêtes ponctuelles + notification</td></tr>
-  <tr><td>S6</td><td>Génération des jetons vers ratatui</td><td>Générateur maison</td></tr>
+  <tr><td>S6 ✅</td><td>Génération des jetons vers ratatui : <b>réussi</b></td><td>—</td></tr>
 </table></div>
 
 <h3>Risques durables</h3>
@@ -573,6 +576,7 @@ footer{margin-top:56px;color:var(--muted);font-size:.9rem;border-top:1px solid v
 <h2 id="limites">15. Limites de l'étude</h2>
 <ul>
   <li>La recherche principale a vérifié 25 affirmations par vote contradictoire (toutes confirmées). Elles portent sur le pont, Flutter Web, PowerSync, Loro et Crux.</li>
+  <li>Deux essais ont depuis été menés et réussis (spécification Gherkin partagée, jetons vers ratatui). Le pont, le web applicatif et le stockage dans le navigateur ne sont pas encore validés par l'expérience.</li>
   <li>Tout le reste (TUI, Gherkin partagé, jetons, CI, distribution, retours d'expérience, alternatives, stockage web) vient de recherches complémentaires lues sur sources officielles, sans contre-vérification.</li>
   <li>Trois choix sont des jugements et non des faits : garder la présentation en Dart, préférer Leptos, écrire la synchronisation soi-même.</li>
   <li>Les versions citées sont celles du 16 novembre 2026 ; plusieurs bibliothèques évoluent vite.</li>
