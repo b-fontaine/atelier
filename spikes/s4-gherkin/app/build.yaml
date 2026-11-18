@@ -1,0 +1,10 @@
+targets:
+  $default:
+    sources:
+      - $package$
+      - lib/$lib$
+      - test/**
+    builders:
+      bdd_widget_test|featureBuilder:
+        options:
+          literalParameters: true
