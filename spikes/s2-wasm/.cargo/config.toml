@@ -1,0 +1,5 @@
+# Le build web de FRB est threadé (+atomics, mémoire partagée) : le SQLite C
+# compilé par sqlite-wasm-rs doit l'être aussi, sinon l'édition de liens échoue
+# (« --shared-memory is disallowed by …sqlite3.o »). Sans effet en natif.
+[env]
+CFLAGS_wasm32_unknown_unknown = "-matomics -mbulk-memory"
