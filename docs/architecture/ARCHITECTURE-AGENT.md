@@ -50,7 +50,7 @@ Chaque affirmation factuelle porte un marqueur. Ne promeus jamais un `[J]` ou un
 
 1. **Un cœur Rust hexagonal** porte le domaine, les cas d'usage, la persistance locale et la synchronisation. Il est consommé directement par la TUI et le site public (appel Rust natif), et par Flutter à travers un pont généré. `[J]`, cohérent avec les pratiques de Bitwarden, Element X, AppFlowy `[P]`.
 2. **Pont : `flutter_rust_bridge` v2** (2.13.0 stable). C'est le seul pont vérifié qui annonce les six cibles, web compris, avec async et streams `[V]`. Il a un risque de mainteneur unique `[P]` : on le confine dans un crate mince et remplaçable.
-3. **La présentation reste en Dart** : BLoC `sealed` sans Cubit, inchangé. Rust expose des commandes et des flux de modèles de lecture ; le BLoC n'a plus de règle métier `[J]`. L'option « état de présentation dans Rust » est écartée par défaut : elle n'a aucun outillage pour Flutter `[V]` `[P]`.
+3. **La présentation reste en Dart** : BLoC `sealed` sans Cubit, inchangé. Rust expose des commandes, des requêtes de modèles de lecture et des notifications de changement (les flux de données du pont ne sont pas fiables sur le web, essai S5 `[E]`) ; le BLoC n'a plus de règle métier `[J]`. L'option « état de présentation dans Rust » est écartée par défaut : elle n'a aucun outillage pour Flutter `[V]` `[P]`.
 4. **Web applicatif : Flutter Web + cœur Rust en WASM**, servi sur un sous-domaine isolé (COOP/COEP) `[V]`. **Web public : site DOM séparé**, Leptos par défaut `[J]`, comme le recommande la doc Flutter pour tout contenu indexable `[V]`.
 5. **Synchronisation : moteur maison dans le cœur** (file de mutations, tirage par curseur, serveur d'autorité) `[J]`. Raison décisive : le SDK Rust de PowerSync ne fonctionne pas dans le navigateur `[P]`, ce qui casserait le cœur unique.
 6. **Une seule spécification Gherkin** à la racine, exécutée par cucumber-rs (cœur, TUI) et par `bdd_widget_test` (Flutter) via une copie synchronisée vérifiée en CI `[J]` sur faits `[P]`.
@@ -82,7 +82,7 @@ Deux options étaient à comparer.
 | Pratiques utilisateur | Intactes : BLoC sealed, `bloc_test`, `bdd_widget_test` | BLoC réduit à un passe-plat ; les tests de BLoC perdent leur objet |
 | Références de production | AppFlowy `[P]`, VGV `[S]` | 1Password (view models dans Rust, UI non Flutter) `[P]`, Proton et Photoroom avec Crux et UI natives `[S]` ; **aucun cas Flutter trouvé** `[NV]` |
 | Duplication GUI/TUI | La machine à états de présentation existe deux fois (BLoC Dart, modèle TUI Rust) | Aucune |
-| Trafic sur le pont | Appels au niveau cas d'usage, grain grossier | Chaque interaction traverse le pont ; flux signalés instables sur le web `[V]` |
+| Trafic sur le pont | Appels au niveau cas d'usage, grain grossier | Chaque interaction traverse le pont ; flux défaillants sur le web `[E]` (S5) |
 
 **Décision : (a), avec une soupape.** `[J]`
 
@@ -352,7 +352,7 @@ impl<R: NoteRepository, C: Clock, I: IdGenerator> CreateNote<R, C, I> {
 Règles :
 - `application` DEVRAIT rester **agnostique du runtime async** (pas de `tokio` dans ses dépendances) : sur le web, l'async Rust tourne sur le fil du Worker ou le fil principal `[V]`. Le choix du runtime appartient à `core` et aux adaptateurs `[J]`.
 - Une commande = une transaction = une mutation en boîte d'envoi.
-- Les requêtes qui alimentent l'UI renvoient des **flux** de modèles de lecture, recalculés quand les tables sous-jacentes changent.
+- Dans le cœur, un modèle de lecture PEUT être exposé en flux Rust : la TUI et le site public le consomment directement. **À travers le pont**, il est exposé sous la forme « requête ponctuelle + notifications de version » du §5.4.
 
 ### 5.4 API du pont
 
@@ -362,8 +362,13 @@ Illustratif, non compilé ; valide les attributs FRB contre la doc de la version
 // bridge/src/api/notes.rs
 pub async fn create_note(title: String) -> Result<String, BridgeError> { /* délègue à core */ }
 
-pub fn watch_notes(query: NoteListQueryDto, sink: StreamSink<NoteListViewDto>)
-    -> Result<(), BridgeError> { /* s'abonne au modèle de lecture */ }
+/// Source de vérité : le modèle de lecture, avec son numéro de version.
+pub async fn get_notes(query: NoteListQueryDto) -> Result<NoteListViewDto, BridgeError> { /* … */ }
+
+/// Notifications sans données : uniquement des numéros de version.
+pub fn watch_notes_changes(watch_id: u32, sink: StreamSink<u32>) -> Result<(), BridgeError> { /* toujours Ok(()) */ }
+
+pub fn unwatch(watch_id: u32) -> Result<(), BridgeError> { /* retire l'observateur */ }
 ```
 
 - DTO : structures plates, types primitifs, `Vec`, `Option`, enums simples. Identifiants en `String`.
@@ -371,7 +376,25 @@ pub fn watch_notes(query: NoteListQueryDto, sink: StreamSink<NoteListViewDto>)
 - **Entiers** `[E]` (S1, corrigé par S2) : `u64` devient `BigInt` en Dart, et `i64` devient `int` en natif mais `BigInt` sur le web, ce qui casse la compilation de l'une des deux cibles. L'API du pont NE DOIT contenir ni `i64` ni `u64` : utiliser `i32`, `u32`, `f64` ou `String`.
 - Une erreur Rust arrive en Dart comme une exception typée implémentant `FrbException` `[E]`.
 - `BridgeError` : enum fermée, codes stables, jamais de message destiné à l'utilisateur final (la traduction se fait en Dart).
-- Les flux FRB vont de Rust vers Dart uniquement, et la doc les signale potentiellement instables sur le web `[V]`. Chaque flux DOIT avoir un test d'intégration web, et le cœur DEVRAIT offrir une requête ponctuelle équivalente (`get_notes`) utilisable en repli.
+- **Les flux de données du pont ne sont pas fiables sur le web** : l'essai S5 `[E]` (FRB 2.13.0, Chrome 157 et Firefox 159, `adr/S5-flux-web.md`) a mesuré :
+  - un **blocage systématique** dès que le consommateur Dart met le flux en pause (`await` dans un `await for`) : l'écouteur est retiré et les messages, dont celui de fermeture, sont perdus ;
+  - des **pertes intermittentes** au début des flux émis depuis un Worker, sur Chrome ;
+  - **aucune annulation propagée vers Rust** : `sink.add` n'échoue jamais sur le web, l'émetteur continue ;
+  - des **canaux partagés par l'origine** : deux onglets reçoivent les événements l'un de l'autre ;
+  - natif et web : `add_error` n'accepte qu'une chaîne et ferme le flux ; un `Err` renvoyé par la fonction de flux échappe au flux.
+- **Forme unique des modèles de lecture à travers le pont, sur toutes les cibles** `[E]` :
+  1. Une **requête ponctuelle** DOIT renvoyer le modèle de lecture avec un numéro de `version` : c'est la source de vérité.
+  2. Un flux NE DOIT transporter que des **numéros de version**. Une notification perdue ou fusionnée est sans effet : Dart relit quand la version reçue dépasse la sienne.
+  3. Tout flux DOIT avoir un **désabonnement explicite** appelé depuis `onCancel`. Aucun émetteur ne dépend de l'échec de `sink.add` pour s'arrêter.
+  4. Dart DOIT **resynchroniser** : à l'abonnement, au retour au premier plan, et à faible fréquence tant que la vue est visible.
+  5. Dart NE DOIT PAS consommer un flux du pont par `await for` avec des `await` dans la boucle, ni le mettre en pause : `listen` avec une fonction synchrone qui planifie la relecture.
+  6. Sur le web, les notifications DEVRAIENT être émises depuis le fil principal (fonction `async` ou `#[frb(sync)]`), pas depuis un Worker.
+  7. Une fonction de flux renvoie toujours `Ok(())` ; les erreurs passent par la requête ponctuelle, typée.
+- Chaque flux DOIT avoir un test d'intégration web répété (au moins 10 passes), sur Chrome et Firefox, avec un consommateur lent.
+- **Onglets multiples** : la contamination entre onglets est neutralisée par le verrou d'onglet unique du plan A (§3.7). Si ce verrou disparaît, elle redevient un défaut bloquant.
+- **Correctif disponible, non appliqué** : `spikes/s5-flux/scripts/frb-stream-sink-sans-pause.patch` (30 lignes, code Dart de FRB) supprime le blocage et la contamination, pas les pertes en début de flux ni l'absence d'annulation. L'appliquer impose de maintenir une copie de la dépendance : décision de l'utilisateur. À proposer à l'amont.
+- En WASM threadé, pas de `Mutex` bloquant partagé entre le fil principal et les Workers : `Atomics.wait` est interdit sur le fil principal `[E]`. Utiliser `try_lock` sur de courtes sections, ou des canaux.
+- Sur le web, le redémarrage à chaud (`R`) laisse tourner l'ancienne instance WASM ; le rechargement à chaud (`r`) est sain `[E]`.
 - Lints du crate : `#![deny(clippy::unwrap_used, clippy::expect_used, clippy::panic)]`.
 
 ### 5.5 Configuration du workspace
@@ -469,7 +492,7 @@ Aucun exemple Flutter officiel de FSD ni linter FSD pour Dart n'a été trouvé 
 Règles :
 - `Bloc` uniquement, jamais `Cubit`. Le linter officiel `bloc_lint` 0.4.3 fournit la règle `prefer_bloc` `[P]` ; sa sémantique exacte et sa sévérité configurable n'ont pas été lues `[NV]` : vérifie-les avant de t'y fier, sinon ajoute un contrôle par recherche de `extends Cubit`.
 - Events et states en hiérarchies `sealed`, classes finales immuables.
-- Un BLoC s'abonne aux flux du cœur dans son constructeur via un event interne, et utilise `emit.forEach` / `emit.onEach` pour convertir le flux en états.
+- Un BLoC charge le modèle de lecture par la requête ponctuelle, puis s'abonne aux notifications de version par un event interne ; chaque notification déclenche un event de relecture. La passerelle (segment `data`) encapsule la paire requête + notifications + désabonnement et expose au BLoC un `Stream` Dart ordinaire de modèles de lecture, sans pause ni `await` sur le flux du pont (§5.4).
 - Versions : `bloc` 9.2.1, `flutter_bloc` 9.1.1 `[P]`.
 
 Illustratif, non compilé :
@@ -846,7 +869,7 @@ Chaque essai est un prototype jetable, borné dans le temps, avec un critère de
 | **S2** ✅ | **Réussi le 2026-11-18 sur Chrome et Firefox** (`adr/S2-wasm-sqlite.md`), plan A retenu ; **Safari non testé**. Énoncé d'origine : cœur en WASM : `build-web`, `rusqlite` + VFS `sahpool`, écriture, rechargement de page, relecture ; second onglet | Donnée relue après rechargement sur Chrome, Firefox et Safari ; second onglet détecté proprement | Plan B ou C (ADR-07) |
 | **S3** | En-têtes `COOP: same-origin` + `COEP: require-corp` sur l'hébergeur visé ; connexion par redirection | `crossOriginIsolated` vrai sur Safari ; connexion fonctionnelle | Mode sans en-têtes (`default_dart_async: false`), avec perte de réactivité |
 | **S4** ✅ | **Réussi le 2026-11-18** (`adr/S4-gherkin-partage.md`), dialecte plus étroit que prévu : voir §8. Énoncé d'origine : un `.feature` partagé : cucumber-rs + `bdd_widget_test` avec `literalParameters`, `# language: fr`, une table, un `Scenario Outline`, une étiquette d'exclusion | Les deux exécutants passent sur le même fichier ; `sync_features --check` détecte un écart | Dialecte plus restreint, ou `gherkart` |
-| **S5** | Flux FRB sur le web : 1 000 émissions, annulation d'abonnement, rechargement à chaud | Aucune perte, aucun blocage | Repli sur requêtes ponctuelles + notification de changement |
+| **S5** ❌ | **Critère non atteint le 2026-11-18** (`adr/S5-flux-web.md`) : pertes et blocages mesurés ; le repli est adopté comme forme unique (§5.4). Énoncé d'origine : flux FRB sur le web : 1 000 émissions, annulation d'abonnement, rechargement à chaud | Aucune perte, aucun blocage | Repli sur requêtes ponctuelles + notification de changement |
 | **S6** ✅ | **Réussi le 2026-11-18** (`adr/S6-jetons-ratatui.md`) ; reste la sortie Dart `ThemeExtension`. Énoncé d'origine : format Style Dictionary personnalisé vers Rust | Palette ratatui générée et utilisée par un atome | Générateur `build.rs` maison |
 
 Autres risques suivis :
@@ -929,7 +952,7 @@ Chaque étape se termine par les gates vertes et un commit.
 
 - La recherche principale a extrait 120 affirmations de 27 sources et en a vérifié 25 par vote contradictoire (25 confirmées, 0 réfutée). Elles couvrent FRB, Crux, UniFFI-Dart, PowerSync, Loro et Flutter Web. **Tout le reste** (TUI, monorepo, Gherkin partagé, tokens, CI, empaquetage, retours d'expérience, alternatives, persistance web) vient de cinq recherches complémentaires lues sur sources primaires par un seul agent chacune, sans contre-vérification.
 - Les sources sont surtout des documentations d'éditeurs : fiables sur ce que fait le produit, auto-déclaratives sur sa maturité.
-- À l'origine, aucun assemblage n'avait été compilé. Depuis, les essais S1, S2, S4 et S6 ont été menés (2026-11-18, Linux, prototypes jetables dans `spikes/`) ; leurs ADR font foi pour le détail. Le pont est validé sur Linux et Android, le stockage web sur Chrome et Firefox. **Aucune cible Apple n'a été testée, Safari compris.** S3 et S5 restent à faire.
+- À l'origine, aucun assemblage n'avait été compilé. Depuis, les essais S1, S2, S4, S5 et S6 ont été menés (2026-11-18, Linux, prototypes jetables dans `spikes/`) ; leurs ADR font foi pour le détail. Le pont est validé sur Linux et Android, le stockage web sur Chrome et Firefox ; les flux de données du pont ont échoué sur le web et sont remplacés par des notifications de version. **Aucune cible Apple n'a été testée, Safari compris.** S3 reste à faire.
 - Les arbitrages (a)/(b), Leptos/Jaspr/Astro et moteur de synchronisation maison sont des jugements, étayés mais non démontrés.
 
 ---

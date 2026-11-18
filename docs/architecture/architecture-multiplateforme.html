@@ -256,7 +256,7 @@ footer{margin-top:56px;color:var(--muted);font-size:.9rem;border-top:1px solid v
 </ul>
 
 <h2 id="flux">4. Parcours d'une action</h2>
-<p>Exemple : l'utilisateur crée une note. La flèche pleine est la commande ; la flèche pointillée est le retour, qui passe par un <b>flux</b> et non par la valeur de retour de l'appel.</p>
+<p>Exemple : l'utilisateur crée une note. La flèche pleine est la commande ; la flèche pointillée est le retour : le cœur <b>notifie</b> qu'un modèle a changé, et Dart le relit.</p>
 
 <figure>
   <div class="scroll">
@@ -283,7 +283,7 @@ footer{margin-top:56px;color:var(--muted);font-size:.9rem;border-top:1px solid v
     <path class="ar" d="M650 118 V212"/>
     <path class="ar2" d="M715 212 V118"/>
     <text class="small" x="640" y="165" text-anchor="end">④ appel async</text>
-    <text class="small" x="725" y="165">⑦ flux</text>
+    <text class="small" x="725" y="165">⑦ notification</text>
 
     <rect class="box rust" x="600" y="212" width="160" height="56" rx="8"/><text x="680" y="245" text-anchor="middle">bridge</text>
     <rect class="box rust" x="410" y="212" width="150" height="56" rx="8"/><text x="485" y="237" text-anchor="middle">Cas d'usage</text><text class="small" x="485" y="255" text-anchor="middle">+ règles du domaine</text>
@@ -299,10 +299,10 @@ footer{margin-top:56px;color:var(--muted);font-size:.9rem;border-top:1px solid v
     <text class="small" x="485" y="290" text-anchor="middle">modèle de lecture recalculé</text>
   </svg>
   </div>
-  <figcaption>Le BLoC ne contient aucune règle métier : il traduit un event en appel, et un flux en états <code>sealed</code>. La TUI appelle directement les cas d'usage : elle n'utilise ni la partie Dart ni la boîte <code>bridge</code>.</figcaption>
+  <figcaption>Le BLoC ne contient aucune règle métier : il traduit un event en appel, et chaque notification en relecture puis en état <code>sealed</code>. La TUI appelle directement les cas d'usage : elle n'utilise ni la partie Dart ni la boîte <code>bridge</code>.</figcaption>
 </figure>
 
-<div class="note"><b>Attention sur le web :</b> la doc du pont signale que les flux peuvent y être instables <span class="tag t-v">vérifié</span>. Chaque flux doit avoir un test web, et le cœur doit offrir une requête ponctuelle équivalente en repli.</div>
+<div class="note"><b>Pourquoi une notification et non les données elles-mêmes :</b> un prototype a montré que les flux de données du pont perdent des événements ou se bloquent dans le navigateur <span class="tag t-v">essai réussi</span> (au sens : essai mené, défaut établi). Le flux ne transporte donc qu'un numéro de version ; les données viennent toujours d'une requête ordinaire. Une notification perdue est sans conséquence, car Dart relit aussi à l'abonnement et au retour au premier plan.</div>
 
 <h2 id="sync">5. Hors ligne et synchronisation</h2>
 <p>Principe : l'application écrit toujours en local d'abord. Chaque écriture enregistre, dans la même transaction, une <b>mutation</b> à envoyer plus tard. Le serveur reste l'autorité.</p>
@@ -540,14 +540,14 @@ footer{margin-top:56px;color:var(--muted);font-size:.9rem;border-top:1px solid v
 <p>À garder en tête : le cabinet Very Good Ventures juge un cœur Rust excessif pour une application qui se résume à une API et une base locale. Sans TUI ni site public à alimenter, cet avis s'appliquerait.</p>
 
 <h2 id="risques">13. Risques et essais préalables</h2>
-<p>Six prototypes courts doivent confirmer les points fragiles. Quatre sont faits (S1, S2, S4 et S6, le 18 novembre 2026). Restent S3 et S5, ainsi que la vérification sur Safari et sur les cibles Apple.</p>
+<p>Six prototypes courts doivent confirmer les points fragiles. Cinq sont faits (le 18 novembre 2026) : quatre réussis, un en échec qui a conduit à adopter le repli prévu. Reste S3, ainsi que la vérification sur Safari et sur les cibles Apple.</p>
 <div class="tablewrap"><table>
   <tr><th>#</th><th>Essai</th><th>Si échec</th></tr>
   <tr><td>S1 ✅</td><td>Le pont dans le monorepo, avec Native Assets et Flutter 3.50 : <b>réussi</b> sur Linux et Android ; cibles Apple non testées</td><td>—</td></tr>
   <tr><td>S2 ✅</td><td>Cœur en WASM avec SQLite persistant : <b>réussi</b> sur Chrome et Firefox ; Safari non testé</td><td>Plan C si Safari échoue</td></tr>
   <tr><td>S3</td><td>En-têtes d'isolation sur l'hébergeur visé, connexion par redirection, sur Safari</td><td>Mode mono-fil du pont, moins réactif</td></tr>
   <tr><td>S4 ✅</td><td>Un même <code>.feature</code> exécuté par cucumber-rs et <code>bdd_widget_test</code> : <b>réussi</b>, avec un dialecte plus étroit que prévu</td><td>—</td></tr>
-  <tr><td>S5</td><td>Flux du pont sur le web, en charge</td><td>Requêtes ponctuelles + notification</td></tr>
+  <tr><td>S5 ❌</td><td>Flux du pont sur le web, en charge : <b>échec</b> (pertes et blocages)</td><td>Repli adopté : requêtes ponctuelles + notifications</td></tr>
   <tr><td>S6 ✅</td><td>Génération des jetons vers ratatui : <b>réussi</b></td><td>—</td></tr>
 </table></div>
 
@@ -577,7 +577,7 @@ footer{margin-top:56px;color:var(--muted);font-size:.9rem;border-top:1px solid v
 <h2 id="limites">15. Limites de l'étude</h2>
 <ul>
   <li>La recherche principale a vérifié 25 affirmations par vote contradictoire (toutes confirmées). Elles portent sur le pont, Flutter Web, PowerSync, Loro et Crux.</li>
-  <li>Quatre essais ont depuis été menés et réussis (pont sur Linux et Android, stockage web sur Chrome et Firefox, spécification Gherkin partagée, jetons vers ratatui). Aucune cible Apple n'a été testée, Safari compris.</li>
+  <li>Cinq essais ont depuis été menés. Quatre ont réussi (pont sur Linux et Android, stockage web sur Chrome et Firefox, spécification Gherkin partagée, jetons vers ratatui). Un a échoué (flux de données du pont sur le web) et a modifié la recommandation. Aucune cible Apple n'a été testée, Safari compris.</li>
   <li>Tout le reste (TUI, Gherkin partagé, jetons, CI, distribution, retours d'expérience, alternatives, stockage web) vient de recherches complémentaires lues sur sources officielles, sans contre-vérification.</li>
   <li>Trois choix sont des jugements et non des faits : garder la présentation en Dart, préférer Leptos, écrire la synchronisation soi-même.</li>
   <li>Les versions citées sont celles du 16 novembre 2026 ; plusieurs bibliothèques évoluent vite.</li>
