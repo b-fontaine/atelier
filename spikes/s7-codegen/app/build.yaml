@@ -1,0 +1,12 @@
+targets:
+  $default:
+    sources:
+      - $package$
+      - pubspec.yaml
+      - lib/$lib$
+      - lib/**
+      - test/**
+    builders:
+      bdd_widget_test|featureBuilder:
+        options:
+          literalParameters: true
