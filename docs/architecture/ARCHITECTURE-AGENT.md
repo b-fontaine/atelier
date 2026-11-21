@@ -1161,3 +1161,14 @@ FFIgen (Objective-C) et JNIgen (Java, Kotlin) sont stables depuis 3.50 : appels 
 3. Étape 7 : vérifier `widgetbook` et `alchemist` avec `material_ui`.
 4. Job macOS : couvrir SwiftPM avec le backend `native-assets`.
 
+### 20.12 Guide de mise en place (2026-11-21)
+
+La séquence d'amorçage du dépôt est décrite commande par commande dans `docs/guide/MISE-EN-PLACE-AGENT.md` (version pour développeur : `docs/guide/mise-en-place.html`). Elle a été rejouée à blanc sous Linux jusqu'au test d'intégration et au build web. Constats nouveaux, qui priment sur le reste du document :
+
+- **Workspace Cargo** : la forme `members = ["crates/*", "crates/adapters/*"]` du §5.5 échoue, car `crates/*` attrape le dossier `crates/adapters`. Utiliser une liste explicite, que `cargo new` alimente `[E]`.
+- **Pont dans un paquet dédié** : `flutter_rust_bridge_codegen integrate` fonctionne dans `packages/core_bridge` (gabarit `package`), et l'application l'appelle avec succès en `integration_test` sur Linux `[E]`. L'exécution web dans cette disposition n'est pas vérifiée `[NV]` ; seul le build l'est.
+- **Formatage** : le code généré par FRB est en édition 2021 ; dans un workspace en édition 2024, `mod frb_generated;` DOIT porter `#[rustfmt::skip]` `[E]`.
+- **Tests sur l'hôte** : `flutter test` hors `integration_test` ne charge pas la bibliothèque native (`Failed to load dynamic library`) `[E]`. Cela confirme le §8.5 : faux en Dart pour les tests unitaires et de widgets.
+- **Second conflit de génération** : `freezed` 4.0.3 (`analyzer ^14`) et `widgetbook_generator` 3.24.0 (`analyzer <14`) ne se résolvent pas dans le même espace de travail `[E]`. Par défaut : pas de `widgetbook_generator`, cas d'usage Widgetbook écrits à la main.
+- **Résolution établie** `[E]` : `widgetbook` 3.25.0, `widgetbook_annotation` 3.11.0 et `alchemist` 0.15.0 se résolvent avec `material_ui` 1.11.1. Leur fonctionnement à l'exécution reste `[NV]`.
+

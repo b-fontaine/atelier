@@ -1,0 +1,572 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Mise en place du dépôt</title>
+<style>
+:root{
+  --bg:#fbfaf7; --surface:#ffffff; --ink:#1d1c1a; --muted:#6b665e; --line:#d9d5cc;
+  --rust:#b4501e; --rust-bg:#fbeee6;
+  --dart:#1b6fb5; --dart-bg:#e8f2fb;
+  --ok:#2f7d4f; --ok-bg:#e9f5ee;
+  --warn:#9a6700; --warn-bg:#fff4d6;
+  --bad:#b3261e; --bad-bg:#fbe9e7;
+  --code-bg:#f1eee8;
+}
+@media (prefers-color-scheme: dark){
+  :root{
+    --bg:#16171a; --surface:#1f2126; --ink:#e9e7e2; --muted:#a09c94; --line:#3a3d45;
+    --rust:#e58a55; --rust-bg:#3a2418;
+    --dart:#6fb1e8; --dart-bg:#17293a;
+    --ok:#6cc08d; --ok-bg:#17301f;
+    --warn:#e0b040; --warn-bg:#3a2e10;
+    --bad:#f08a80; --bad-bg:#3b1a17;
+    --code-bg:#2a2c32;
+  }
+}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{margin:0;background:var(--bg);color:var(--ink);
+  font:16px/1.6 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+main{max-width:980px;margin:0 auto;padding:32px 16px 80px}
+h1{font-size:2rem;line-height:1.2;margin:0 0 8px}
+h2{font-size:1.4rem;margin:56px 0 12px;padding-top:12px;border-top:1px solid var(--line)}
+h2 .n{display:inline-block;min-width:1.9em;height:1.9em;line-height:1.9em;text-align:center;border-radius:50%;
+  background:var(--code-bg);font-size:.95rem;margin-right:8px;vertical-align:middle}
+h3{font-size:1.08rem;margin:26px 0 8px}
+p{margin:0 0 12px}
+.lead{font-size:1.1rem;color:var(--muted);margin-bottom:24px}
+a{color:var(--dart)}
+code{background:var(--code-bg);padding:1px 5px;border-radius:4px;font-size:.9em;
+  font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace}
+.codeblock{position:relative;margin:12px 0}
+pre{background:var(--code-bg);border-radius:8px;padding:34px 14px 12px;overflow-x:auto;margin:0;font-size:.88rem;line-height:1.5}
+pre code{background:none;padding:0;font-size:1em}
+.copy{position:absolute;top:6px;right:6px;font:inherit;font-size:.75rem;padding:2px 10px;border-radius:6px;
+  border:1px solid var(--line);background:var(--surface);color:var(--muted);cursor:pointer}
+.copy:hover{color:var(--ink)}
+.copy:focus-visible{outline:2px solid var(--dart);outline-offset:2px}
+.file{font-size:.82rem;color:var(--muted);margin:14px 0 -6px}
+nav{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:14px 18px;margin:24px 0}
+nav ol{margin:0;padding-left:20px;columns:2;column-gap:32px}
+@media (max-width:640px){nav ol{columns:1}}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:16px 18px;margin:14px 0}
+.card h3{margin-top:0}
+.key{border-left:4px solid var(--rust)}
+.alert{background:var(--bad-bg);border:1px solid var(--bad);border-radius:10px;padding:12px 16px;margin:14px 0}
+.note{background:var(--warn-bg);border:1px solid var(--warn);border-radius:10px;padding:12px 16px;margin:14px 0}
+.good{background:var(--ok-bg);border:1px solid var(--ok);border-radius:10px;padding:12px 16px;margin:14px 0}
+.tag{display:inline-block;font-size:.72rem;font-weight:600;padding:1px 8px;border-radius:999px;
+  border:1px solid currentColor;white-space:nowrap;vertical-align:middle}
+.t-ok{color:var(--ok)} .t-info{color:var(--dart)} .t-warn{color:var(--warn)}
+.tablewrap{overflow-x:auto;margin:14px 0}
+table{border-collapse:collapse;width:100%;min-width:560px;background:var(--surface);font-size:.94rem}
+th,td{border:1px solid var(--line);padding:8px 10px;text-align:left;vertical-align:top}
+th{background:var(--code-bg);font-weight:600}
+.path{display:flex;flex-wrap:wrap;gap:8px;margin:14px 0}
+.path div{flex:1 1 130px;background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:8px 10px;font-size:.88rem}
+.path b{display:block}
+.path .r{border-color:var(--rust);background:var(--rust-bg)}
+.path .d{border-color:var(--dart);background:var(--dart-bg)}
+ul{padding-left:22px;margin:0 0 12px}
+li{margin:3px 0}
+footer{margin-top:56px;color:var(--muted);font-size:.9rem;border-top:1px solid var(--line);padding-top:16px}
+</style>
+</head>
+<body>
+<main>
+
+<h1>Mise en place du dépôt</h1>
+<p class="lead">Du dossier vide au monorepo qui compile : workspace Rust, paquets Flutter, pont entre les deux, et un test qui prouve que l'application appelle le cœur Rust.</p>
+
+<div class="card key">
+  <h3>Ce que vous obtenez à la fin</h3>
+  <ul>
+    <li>Un workspace Cargo avec les crates du cœur, la TUI et le pont, propre sous <code>rustfmt</code> et <code>clippy</code>.</li>
+    <li>Un espace de travail Dart avec quatre paquets : application, liaisons du pont, design system, Widgetbook.</li>
+    <li>Un test d'intégration Linux vert, où Flutter appelle une fonction Rust.</li>
+    <li>Un build web de l'application avec le cœur compilé en WebAssembly.</li>
+  </ul>
+</div>
+
+<div class="card">
+  <h3>Fiabilité des commandes</h3>
+  <p><span class="tag t-ok">rejoué</span> la commande a été exécutée le 21 novembre 2026 dans un dossier vide, sous Linux, avec les versions ci-dessous. <span class="tag t-info">essai</span> elle vient d'un prototype validé du dépôt (<code>spikes/</code>). <span class="tag t-warn">non testé</span> elle n'a pas été exécutée : vérifiez-la dans la documentation de l'outil.</p>
+  <p style="margin:0">Rien n'a été construit pour iOS, macOS ni Windows. Les versions sont figées volontairement : plusieurs combinaisons plus récentes ne s'installent pas ensemble.</p>
+</div>
+
+<nav aria-label="Sommaire">
+  <ol>
+    <li><a href="#prerequis">Prérequis</a></li>
+    <li><a href="#depot">Dépôt et arborescence</a></li>
+    <li><a href="#rust">Workspace Rust</a></li>
+    <li><a href="#bdd">Tests de comportement Rust</a></li>
+    <li><a href="#dart">Espace de travail Dart</a></li>
+    <li><a href="#pont">Le pont Rust ↔ Dart</a></li>
+    <li><a href="#flutter">Pile Flutter de l'application</a></li>
+    <li><a href="#design">Design system et jetons</a></li>
+    <li><a href="#web">Cible web</a></li>
+    <li><a href="#verif">Vérification et premier commit</a></li>
+    <li><a href="#pieges">Les pièges, en une table</a></li>
+    <li><a href="#limites">Ce que ce guide ne couvre pas</a></li>
+  </ol>
+</nav>
+
+<div class="path" aria-label="Ordre des étapes">
+  <div><b>1 · 2</b>Outils, dépôt</div>
+  <div class="r"><b>3 · 4</b>Rust : crates, tests</div>
+  <div class="d"><b>5</b>Dart : paquets</div>
+  <div><b>6</b>Pont</div>
+  <div class="d"><b>7 · 8</b>Flutter, design</div>
+  <div><b>9</b>Web</div>
+  <div><b>10</b>Vérification</div>
+</div>
+
+<p>Dans tout le guide, remplacez <code>atelier</code> par le nom de votre projet et <code>dev.atelier</code> par votre identifiant d'organisation.</p>
+<div class="codeblock"><pre><code>PROJET=atelier
+ORG=dev.atelier</code></pre></div>
+
+<h2 id="prerequis"><span class="n">1</span>Prérequis</h2>
+<div class="tablewrap"><table>
+  <tr><th>Outil</th><th>Version</th></tr>
+  <tr><td>Flutter / Dart</td><td>3.50.1 / 3.14.0 (surtout pas 3.50.0)</td></tr>
+  <tr><td>Rust stable</td><td>1.100.0</td></tr>
+  <tr><td>Rust nightly, pour le build web uniquement</td><td><code>nightly-2026-11-15</code></td></tr>
+  <tr><td><code>flutter_rust_bridge_codegen</code></td><td>2.13.0</td></tr>
+  <tr><td><code>wasm-pack</code></td><td>0.15.1</td></tr>
+  <tr><td>Node / npm, pour les jetons de design</td><td>26 / 12</td></tr>
+</table></div>
+
+<div class="codeblock"><pre><code>rustup toolchain install 1.100.0 --component rustfmt --component clippy
+rustup toolchain install nightly-2026-11-15 --profile minimal \
+    --component rust-src --target wasm32-unknown-unknown
+
+cargo install flutter_rust_bridge_codegen --version 2.13.0 --locked
+cargo install wasm-pack --version 0.15.1 --locked</code></pre></div>
+<p>Lancez les deux installations <code>rustup</code> l'une après l'autre : en parallèle, elles entrent en collision <span class="tag t-info">essai</span>.</p>
+
+<p>Outils de qualité, à installer quand vous brancherez l'intégration continue <span class="tag t-warn">non testé</span> :</p>
+<div class="codeblock"><pre><code>cargo install cargo-nextest cargo-deny cargo-insta cargo-llvm-cov --locked</code></pre></div>
+
+<h3>Vérifier</h3>
+<div class="codeblock"><pre><code>flutter --version &amp;&amp; cargo --version &amp;&amp; flutter_rust_bridge_codegen --version &amp;&amp; wasm-pack --version
+flutter doctor</code></pre></div>
+
+<h2 id="depot"><span class="n">2</span>Dépôt et arborescence</h2>
+<div class="codeblock"><pre><code>git init -b main .
+mkdir -p crates/adapters packages features design/tokens tool docs/architecture/adr .github/workflows</code></pre></div>
+
+<p class="file">.gitignore</p>
+<div class="codeblock"><pre><code># Rust
+/target/
+# Dart et Flutter
+.dart_tool/
+build/
+# Pont : sortie du build web
+packages/app/web/pkg/
+# Node (jetons de design)
+node_modules/
+# IDE
+.idea/
+*.iml</code></pre></div>
+<p><code>Cargo.lock</code> et <code>pubspec.lock</code> se versionnent : ce sont eux qui figent les versions.</p>
+
+<h3>L'arborescence visée</h3>
+<div class="codeblock"><pre><code>.
+├─ Cargo.toml  rust-toolchain.toml      workspace Rust
+├─ pubspec.yaml                         espace de travail Dart
+├─ features/                            scénarios Gherkin, source unique
+├─ design/tokens/                       jetons de design
+├─ crates/
+│  ├─ domain/  application/  sync-protocol/  core/  test-support/
+│  ├─ adapters/storage-sqlite/  adapters/sync-http/
+│  ├─ bridge/                           seul crate lié à flutter_rust_bridge
+│  └─ tui/
+├─ packages/
+│  ├─ app/                              application Flutter
+│  ├─ core_bridge/                      liaisons Dart générées
+│  ├─ design_system/
+│  └─ widgetbook/
+└─ tool/</code></pre></div>
+
+<h2 id="rust"><span class="n">3</span>Workspace Rust</h2>
+
+<p class="file">Cargo.toml</p>
+<div class="codeblock"><pre><code>[workspace]
+resolver = "3"
+members = []
+
+[workspace.package]
+edition = "2024"
+version = "0.1.0"
+publish = false
+
+[workspace.lints.rust]
+unsafe_code = "deny"
+unexpected_cfgs = { level = "warn", check-cfg = ['cfg(frb_expand)'] }
+
+[workspace.lints.clippy]
+all = { level = "deny", priority = -1 }
+pedantic = { level = "warn", priority = -1 }
+unwrap_used = "deny"
+expect_used = "deny"
+panic = "deny"</code></pre></div>
+
+<div class="note"><b>Laissez <code>members</code> vide.</b> <code>cargo new</code> y ajoute chaque crate tout seul. La forme à motifs (<code>"crates/*"</code>) échoue ici : elle attrape le dossier <code>crates/adapters</code>, qui n'est pas un crate <span class="tag t-ok">rejoué</span>.</div>
+
+<p class="file">rust-toolchain.toml</p>
+<div class="codeblock"><pre><code>[toolchain]
+channel = "1.100.0"
+components = ["rustfmt", "clippy"]
+targets = [
+  "x86_64-unknown-linux-gnu",
+  "aarch64-linux-android",
+  "armv7-linux-androideabi",
+  "x86_64-linux-android",
+  "wasm32-unknown-unknown",
+]</code></pre></div>
+<p>Le numéro de version exact est obligatoire : le pont refuse <code>stable</code>. Ajoutez les cibles Apple et Windows quand vous construirez pour elles.</p>
+
+<h3>Créer les crates</h3>
+<div class="codeblock"><pre><code>for c in domain application sync-protocol core test-support; do
+  cargo new --lib --vcs none --name "$PROJET-$c" "crates/$c"
+done
+cargo new --lib --vcs none --name "$PROJET-storage-sqlite" crates/adapters/storage-sqlite
+cargo new --lib --vcs none --name "$PROJET-sync-http"      crates/adapters/sync-http
+cargo new --bin --vcs none --name "$PROJET-tui"            crates/tui</code></pre></div>
+<p>Chaque crate hérite d'emblée de l'édition, de la version et des lints du workspace <span class="tag t-ok">rejoué</span>.</p>
+
+<h3>Remplacer le code du gabarit</h3>
+<p>La fonction d'exemple générée par <code>cargo new --lib</code> ne passe pas les lints stricts. Videz les bibliothèques :</p>
+<div class="codeblock"><pre><code>for d in crates/domain crates/application crates/sync-protocol crates/core \
+         crates/test-support crates/adapters/storage-sqlite crates/adapters/sync-http; do
+  echo "//! $(basename "$d")." &gt; "$d/src/lib.rs"
+done</code></pre></div>
+
+<h3>Relier les crates</h3>
+<div class="codeblock"><pre><code>cargo add -p "$PROJET-application"    --path crates/domain
+cargo add -p "$PROJET-core"           --path crates/application
+cargo add -p "$PROJET-storage-sqlite" --path crates/application
+cargo add -p "$PROJET-storage-sqlite" rusqlite@0.43.0 --features bundled
+cargo add -p "$PROJET-tui"            --path crates/core
+cargo add -p "$PROJET-tui"            ratatui@0.30.2 crossterm@0.29.0
+cargo add -p "$PROJET-tui" --dev      insta@1.49.0
+cargo add -p "$PROJET-application" --dev cucumber@0.23.0
+cargo add -p "$PROJET-application" --dev tokio --features macros,rt-multi-thread
+cargo add -p "$PROJET-application" --dev --path crates/test-support</code></pre></div>
+<p>Le sens des dépendances fait l'architecture : <code>domain</code> ne dépend de rien, <code>application</code> seulement de <code>domain</code>, et la TUI jamais du pont.</p>
+
+<h3>Vérifier</h3>
+<div class="codeblock"><pre><code>cargo fmt --all --check
+cargo clippy --workspace --all-targets -- -D warnings
+cargo test --workspace</code></pre></div>
+<p>Cargo signale des dépendances « inutilisées » : c'est normal sur un squelette, et cela ne fait pas échouer la commande <span class="tag t-ok">rejoué</span>.</p>
+
+<h2 id="bdd"><span class="n">4</span>Tests de comportement Rust</h2>
+<p>Ajoutez une cible de test sans harnais à <code>crates/application/Cargo.toml</code> :</p>
+<div class="codeblock"><pre><code>[[test]]
+name = "bdd"
+harness = false</code></pre></div>
+<ul>
+  <li>Les fichiers <code>.feature</code> vont dans <code>features/</code>, à la racine, en français (<code># language: fr</code>).</li>
+  <li>Écrivez <code>crates/application/tests/bdd.rs</code> sur le modèle de <code>spikes/s4-gherkin/core/tests/bdd.rs</code>.</li>
+</ul>
+<div class="alert"><b>Terminez le lanceur par <code>run_and_exit</code>.</b> Avec <code>.run()</code>, le processus rend un code de succès même quand des scénarios échouent : votre intégration continue ne verrait rien <span class="tag t-info">essai</span>.</div>
+<div class="codeblock"><pre><code>cargo test -p "$PROJET-application" --test bdd</code></pre></div>
+
+<h2 id="dart"><span class="n">5</span>Espace de travail Dart</h2>
+<div class="codeblock"><pre><code>flutter create --template=package --project-name "${PROJET}_design_system" packages/design_system
+flutter create --template=package --project-name "${PROJET}_core_bridge"   packages/core_bridge
+flutter create --empty --platforms=android,ios,linux,macos,windows,web \
+    --org "$ORG" --project-name "${PROJET}_app" packages/app
+flutter create --empty --platforms=linux,web --project-name "${PROJET}_widgetbook" packages/widgetbook</code></pre></div>
+<p><code>--empty</code> donne une application minimale, sans le compteur de démonstration. Elle importe déjà <code>material_ui</code>, le remplaçant de <code>material.dart</code> <span class="tag t-ok">rejoué</span>.</p>
+
+<p class="file">pubspec.yaml (racine)</p>
+<div class="codeblock"><pre><code>name: atelier_workspace
+publish_to: none
+environment:
+  sdk: ^3.14.0
+workspace:
+  - packages/app
+  - packages/core_bridge
+  - packages/design_system
+  - packages/widgetbook</code></pre></div>
+
+<p>Puis déclarez chaque paquet comme membre et résolvez le tout :</p>
+<div class="codeblock"><pre><code>for p in app core_bridge design_system widgetbook; do
+  sed -i 's/^environment:/resolution: workspace\nenvironment:/' "packages/$p/pubspec.yaml"
+  rm -f "packages/$p/pubspec.lock"
+done
+sed -i '/^homepage:/d' packages/design_system/pubspec.yaml packages/core_bridge/pubspec.yaml
+flutter pub get
+dart pub add --dev melos
+dart run melos list</code></pre></div>
+<div class="good"><b>Attendu :</b> <code>melos list</code> affiche les quatre paquets, et il n'existe plus qu'un seul <code>pubspec.lock</code>, à la racine <span class="tag t-ok">rejoué</span>.</div>
+
+<h2 id="pont"><span class="n">6</span>Le pont Rust ↔ Dart</h2>
+<p>C'est l'étape la plus délicate. Le pont a son propre paquet Dart (<code>core_bridge</code>) et son propre crate (<code>bridge</code>), pour pouvoir être remplacé sans toucher au reste.</p>
+
+<h3>6.1 Intégrer</h3>
+<div class="codeblock"><pre><code>cd packages/core_bridge
+flutter_rust_bridge_codegen integrate \
+    --rust-crate-dir ../../crates/bridge \
+    --rust-crate-name "${PROJET}_bridge" \
+    --integration-backend native-assets
+cd ../..</code></pre></div>
+
+<h3>6.2 Corriger ce que l'outil a généré</h3>
+<p>L'outil crée un crate isolé et une application de démonstration. Sept retouches le font entrer dans le monorepo <span class="tag t-ok">rejoué</span>.</p>
+
+<p><b>a. Rattacher le crate au workspace.</b> Ajoutez <code>"crates/bridge"</code> à <code>members</code> dans le <code>Cargo.toml</code> racine, puis :</p>
+<div class="codeblock"><pre><code>rm crates/bridge/Cargo.lock crates/bridge/rust-toolchain.toml
+ln -s ../../rust-toolchain.toml crates/bridge/rust-toolchain.toml</code></pre></div>
+<p>Le lien est nécessaire : le pont lit ce fichier dans le dossier du crate, sans remonter à la racine. Sous Windows, utilisez une copie.</p>
+
+<p class="file">crates/bridge/Cargo.toml</p>
+<div class="codeblock"><pre><code>[package]
+name = "atelier_bridge"
+edition.workspace = true
+version.workspace = true
+publish.workspace = true
+
+[lib]
+crate-type = ["cdylib", "staticlib"]
+
+[dependencies]
+flutter_rust_bridge = "=2.13.0"
+
+[lints]
+workspace = true</code></pre></div>
+
+<p><b>b. Exempter le code généré.</b> Il contient des <code>unwrap</code> et n'est pas formaté selon l'édition 2024.</p>
+<p class="file">crates/bridge/src/lib.rs</p>
+<div class="codeblock"><pre><code>//! Pont `flutter_rust_bridge` : seul crate du workspace qui en dépend.
+
+pub mod api;
+
+// Code généré : exempté des lints stricts, qui ne visent que le code écrit à la main.
+#[allow(
+    unsafe_code,
+    clippy::unwrap_used,
+    clippy::expect_used,
+    clippy::panic,
+    clippy::all,
+    clippy::pedantic
+)]
+#[rustfmt::skip]
+mod frb_generated;</code></pre></div>
+
+<p><b>c. Documenter le code de démonstration.</b> Les lints exigent un commentaire <code>//!</code> en tête de <code>api/mod.rs</code> et <code>api/simple.rs</code>, un <code>///</code> et <code>#[must_use]</code> sur <code>greet</code>.</p>
+
+<p><b>d. Relier le pont au cœur.</b></p>
+<div class="codeblock"><pre><code>cargo add -p "${PROJET}_bridge" --path crates/core</code></pre></div>
+
+<p><b>e. Nettoyer le paquet Dart.</b> Supprimez <code>lib/main.dart</code>, <code>test_driver/</code>, <code>integration_test/</code> et le test du gabarit dans <code>packages/core_bridge</code> ; retirez <code>material_ui: any</code> de son <code>pubspec.yaml</code>.</p>
+
+<p class="file">packages/core_bridge/lib/atelier_core_bridge.dart</p>
+<div class="codeblock"><pre><code>/// Liaisons Dart du cœur Rust, générées par flutter_rust_bridge.
+library;
+
+export 'src/rust/api/simple.dart';
+export 'src/rust/frb_generated.dart' show RustLib;</code></pre></div>
+
+<h3>6.3 Générer et brancher l'application</h3>
+<div class="codeblock"><pre><code>(cd packages/core_bridge &amp;&amp; flutter_rust_bridge_codegen generate)
+(cd packages/app &amp;&amp; flutter pub add "${PROJET}_core_bridge" --path ../core_bridge)
+(cd packages/app &amp;&amp; flutter pub add dev:integration_test --sdk=flutter)</code></pre></div>
+<p>Relancez <code>generate</code> après chaque modification de <code>crates/bridge/src/api/</code>.</p>
+
+<h3>6.4 Prouver que ça marche</h3>
+<p class="file">packages/app/integration_test/pont_test.dart</p>
+<div class="codeblock"><pre><code>import 'package:atelier_core_bridge/atelier_core_bridge.dart';
+import 'package:flutter_test/flutter_test.dart';
+import 'package:integration_test/integration_test.dart';
+
+void main() {
+  IntegrationTestWidgetsFlutterBinding.ensureInitialized();
+  setUpAll(() async =&gt; RustLib.init());
+
+  testWidgets('le cœur Rust répond à travers le pont', (tester) async {
+    expect(greet(name: 'atelier'), 'Hello, atelier!');
+  });
+}</code></pre></div>
+<div class="codeblock"><pre><code>(cd packages/app &amp;&amp; flutter test integration_test/pont_test.dart -d linux)</code></pre></div>
+<div class="good"><b>Attendu :</b> « All tests passed! », en une vingtaine de secondes la première fois <span class="tag t-ok">rejoué</span>.</div>
+
+<div class="note"><b>Le cœur Rust n'est pas joignable depuis un test unitaire.</b> Le même test lancé par <code>flutter test test/…</code> échoue : la bibliothèque native n'est pas chargée <span class="tag t-ok">rejoué</span>. C'est voulu par l'architecture : les tests de BLoC et de widgets utilisent des passerelles factices, et seul <code>integration_test</code> traverse le pont.</div>
+
+<h3>6.5 Trois règles pour l'API du pont</h3>
+<ul>
+  <li>Toute fonction renvoie un <code>Result</code> ; jamais de panique.</li>
+  <li>Ni <code>i64</code> ni <code>u64</code> : ils n'ont pas le même type Dart en natif et sur le web.</li>
+  <li>Les données affichées se lisent par une requête ; un flux ne transporte que des numéros de version.</li>
+</ul>
+
+<h2 id="flutter"><span class="n">7</span>Pile Flutter de l'application</h2>
+<div class="codeblock"><pre><code>cd packages/app
+flutter pub add flutter_bloc:9.1.1 get_it:9.3.0 injectable:3.0.0
+flutter pub add dev:build_runner:2.16.1 dev:injectable_generator:3.1.3 \
+    dev:bdd_widget_test:3.0.5 dev:very_good_analysis:11.0.0 dev:bloc_test
+cd ../..</code></pre></div>
+
+<div class="alert"><b>Ne montez pas ces versions.</b> <code>bdd_widget_test</code> 3.1.0 et <code>build_runner</code> 2.17 ne s'installent pas avec <code>injectable_generator</code> <span class="tag t-info">essai</span>.</div>
+
+<div class="note"><b>Un second conflit à connaître :</b> <code>freezed</code> 4.0.3 et le générateur de Widgetbook ne s'installent pas dans le même espace de travail, car ils exigent deux versions incompatibles d'<code>analyzer</code> <span class="tag t-ok">rejoué</span>. Ce guide n'installe donc pas <code>widgetbook_generator</code> : les cas d'usage Widgetbook s'écrivent à la main.</div>
+
+<p>Si vous décidez d'utiliser <code>freezed</code>, <code>json_serializable</code> ou <code>retrofit</code>, voici les versions validées ensemble <span class="tag t-info">essai</span> :</p>
+<div class="codeblock"><pre><code>flutter pub add freezed_annotation json_annotation dio retrofit
+flutter pub add dev:freezed:4.0.3 dev:json_serializable:6.15.2 dev:retrofit_generator:10.3.3</code></pre></div>
+
+<p class="file">packages/app/analysis_options.yaml</p>
+<div class="codeblock"><pre><code>include: package:very_good_analysis/analysis_options.yaml
+analyzer:
+  exclude:
+    - "**/*.g.dart"
+    - "**/*.freezed.dart"
+    - "**/*.config.dart"
+    - "test/features/*_test.dart"
+    - build/**</code></pre></div>
+
+<p class="file">packages/app/build.yaml</p>
+<div class="codeblock"><pre><code>targets:
+  $default:
+    sources:
+      - $package$
+      - pubspec.yaml
+      - lib/$lib$
+      - lib/**
+      - test/**
+    builders:
+      bdd_widget_test|featureBuilder:
+        options:
+          literalParameters: true</code></pre></div>
+<div class="alert"><b>N'oubliez pas <code>lib/**</code>.</b> Sans cette ligne, les générateurs ignorent tout le dossier <code>lib/</code> sans afficher la moindre erreur <span class="tag t-info">essai</span>.</div>
+
+<p class="file">packages/app/dart_test.yaml</p>
+<div class="codeblock"><pre><code>tags:
+  core:
+  gui:
+  e2e:</code></pre></div>
+
+<h3>Scénarios Gherkin partagés</h3>
+<div class="codeblock"><pre><code>mkdir -p packages/app/tool packages/app/test/features
+cp spikes/s4-gherkin/app/tool/sync_features.dart packages/app/tool/</code></pre></div>
+<p>Adaptez dans ce fichier le chemin du dossier source : <code>../../features</code> depuis <code>packages/app</code>.</p>
+
+<h3>Les commandes du quotidien</h3>
+<div class="codeblock"><pre><code>cd packages/app
+dart run tool/sync_features.dart             # copie les .feature portant @gui
+dart run tool/sync_features.dart --check     # échoue en cas d'écart : pour la CI
+dart run build_runner build                  # 33 s la première fois, 9 s ensuite
+dart analyze
+flutter test --tags gui</code></pre></div>
+<ul>
+  <li>L'option <code>--delete-conflicting-outputs</code> n'existe plus dans cette version de <code>build_runner</code>.</li>
+  <li>Filtrez par <code>--tags gui</code>, jamais par <code>--exclude-tags core</code>, qui exclut tout.</li>
+  <li>Après une première génération de fichiers d'étapes, relisez-les et lancez <code>dart analyze</code> : le générateur en corrompt parfois un.</li>
+</ul>
+
+<h3>Arborescence de l'application</h3>
+<div class="codeblock"><pre><code>mkdir -p packages/app/lib/{app,pages,widgets,features,entities,shared}</code></pre></div>
+<p>Dans chaque tranche de <code>features/</code> : <code>presentation/</code>, <code>domain/</code>, <code>data/</code>. Seul <code>data</code> importe le pont.</p>
+
+<h2 id="design"><span class="n">8</span>Design system et jetons</h2>
+<div class="codeblock"><pre><code>(cd packages/design_system &amp;&amp; flutter pub add material_ui)
+(cd packages/design_system &amp;&amp; flutter pub add dev:alchemist)
+(cd packages/widgetbook &amp;&amp; flutter pub add widgetbook widgetbook_annotation)
+(cd packages/widgetbook &amp;&amp; flutter pub add "${PROJET}_design_system" --path ../design_system)
+mkdir -p packages/design_system/lib/src/{tokens,atoms,molecules,organisms}</code></pre></div>
+<ul>
+  <li>Figez ensuite <code>material_ui</code> à la version exacte installée : ce paquet sort chaque semaine.</li>
+  <li>Importez toujours <code>package:material_ui/…</code>, jamais <code>package:flutter/material.dart</code>, désormais déprécié.</li>
+  <li>Widgetbook 3.25.0 et <code>alchemist</code> 0.15.0 s'installent avec <code>material_ui</code> <span class="tag t-ok">rejoué</span> ; leur fonctionnement n'a pas été vérifié <span class="tag t-warn">non testé</span>.</li>
+</ul>
+
+<h3>Jetons de design</h3>
+<div class="codeblock"><pre><code>cd design
+npm init -y
+npm install --save-dev --save-exact style-dictionary@5.8.0
+cd ..</code></pre></div>
+<p>Reprenez les scripts du prototype <code>spikes/s6-jetons/</code> (<code>build.mjs</code>, <code>formats.mjs</code>, <code>check.mjs</code>). Ils génèrent la palette de la TUI, des constantes Dart et des variables CSS à partir d'un seul fichier de jetons <span class="tag t-info">essai</span>.</p>
+
+<h2 id="web"><span class="n">9</span>Cible web</h2>
+<div class="codeblock"><pre><code>cd packages/app
+flutter_rust_bridge_codegen build-web --dart-root . --rust-root ../../crates/bridge \
+    --wasm-pack-rustup-toolchain nightly-2026-11-15 --release
+flutter build web --no-wasm-dry-run --no-web-resources-cdn
+cd ../..</code></pre></div>
+<div class="good"><b>Attendu :</b> un dossier <code>web/pkg/</code> avec le <code>.wasm</code> du cœur, puis « Built build/web ». Environ 30 s puis 20 s <span class="tag t-ok">rejoué</span>.</div>
+
+<p>En développement, l'application web exige deux en-têtes d'isolation :</p>
+<div class="codeblock"><pre><code>flutter run -d chrome \
+    --web-header=Cross-Origin-Opener-Policy=same-origin \
+    --web-header=Cross-Origin-Embedder-Policy=require-corp</code></pre></div>
+
+<p>Avant d'ajouter SQLite au cœur, créez ce fichier, sans quoi l'édition de liens web échoue <span class="tag t-info">essai</span> :</p>
+<p class="file">.cargo/config.toml</p>
+<div class="codeblock"><pre><code>[env]
+CFLAGS_wasm32_unknown_unknown = "-matomics -mbulk-memory"</code></pre></div>
+
+<div class="note"><b>Non vérifié dans cette disposition :</b> l'exécution dans un navigateur. Les prototypes l'ont validée avec le pont intégré directement à l'application, pas dans un paquet séparé. Reprenez le harnais de <code>spikes/s2-wasm/e2e/</code> pour le contrôler.</div>
+
+<h2 id="verif"><span class="n">10</span>Vérification et premier commit</h2>
+<p>Le squelette est en place quand ces cinq commandes passent :</p>
+<div class="codeblock"><pre><code>cargo fmt --all --check &amp;&amp; cargo clippy --workspace --all-targets -- -D warnings &amp;&amp; cargo test --workspace
+dart run melos list
+(cd packages/app &amp;&amp; flutter test integration_test/pont_test.dart -d linux)
+(cd packages/app &amp;&amp; dart run build_runner build &amp;&amp; dart analyze)
+(cd packages/app &amp;&amp; flutter build web --no-wasm-dry-run --no-web-resources-cdn)</code></pre></div>
+<div class="codeblock"><pre><code>git add -A &amp;&amp; git commit -m "chore: squelette du monorepo (workspace Rust, paquets Flutter, pont)"</code></pre></div>
+<p>Regroupez ensuite ces vérifications dans un script <code>tool/check.sh</code> ; son contenu figure dans la version pour agent de ce guide.</p>
+
+<h2 id="pieges"><span class="n">11</span>Les pièges, en une table</h2>
+<div class="tablewrap"><table>
+  <tr><th>Symptôme</th><th>Cause</th><th>Parade</th></tr>
+  <tr><td><code>failed to load manifest for workspace member …/crates/adapters</code></td><td>Motifs dans <code>members</code></td><td>Liste explicite, alimentée par <code>cargo new</code></td></tr>
+  <tr><td><code>clippy::must_use_candidate</code> sur un crate neuf</td><td>Code d'exemple du gabarit</td><td>Remplacer <code>lib.rs</code></td></tr>
+  <tr><td>Le pont refuse de construire</td><td><code>rust-toolchain.toml</code> absent du crate, ou canal <code>stable</code></td><td>Lien symbolique et version exacte</td></tr>
+  <tr><td><code>cargo fmt --check</code> échoue sur <code>frb_generated.rs</code></td><td>Code généré en édition 2021</td><td><code>#[rustfmt::skip]</code> sur le module</td></tr>
+  <tr><td><code>Failed to load dynamic library</code> en test</td><td>Test unitaire qui appelle le cœur</td><td><code>integration_test</code>, ou passerelle factice</td></tr>
+  <tr><td>L'application ne compile plus sur le web</td><td><code>i64</code> ou <code>u64</code> dans l'API du pont</td><td><code>i32</code>, <code>u32</code>, <code>f64</code>, <code>String</code></td></tr>
+  <tr><td>Aucun fichier généré, aucune erreur</td><td><code>build.yaml</code> sans <code>lib/**</code></td><td>Lister <code>lib/**</code> et <code>test/**</code></td></tr>
+  <tr><td><code>version solving failed</code></td><td><code>bdd_widget_test</code> 3.1.0, ou <code>freezed</code> avec <code>widgetbook_generator</code></td><td>Versions de ce guide</td></tr>
+  <tr><td>« No tests match »</td><td><code>--exclude-tags core</code></td><td><code>--tags gui</code></td></tr>
+  <tr><td>CI verte malgré des scénarios en échec</td><td>Lanceur cucumber en <code>.run()</code></td><td><code>run_and_exit</code></td></tr>
+  <tr><td>Fichier <code>.env</code> absent du paquet Android</td><td>Flutter 3.50.0</td><td>Flutter 3.50.1</td></tr>
+</table></div>
+
+<h2 id="limites"><span class="n">12</span>Ce que ce guide ne couvre pas</h2>
+<ul>
+  <li><b>iOS, macOS, Windows :</b> les dossiers sont créés, rien n'a été construit. Le pont avec SwiftPM reste à vérifier.</li>
+  <li><b>Le site public :</b> Leptos n'était pas installé sur la machine de référence. Créez le crate comme les autres (<code>cargo new --bin … crates/web-public</code>), puis suivez la documentation de <code>cargo-leptos</code> <span class="tag t-warn">non testé</span>.</li>
+  <li><b>L'intégration continue, la signature et la distribution :</b> voir l'étude d'architecture.</li>
+  <li><b>Le contenu des crates :</b> ce guide pose la structure, pas le domaine, le stockage ni la synchronisation.</li>
+</ul>
+
+<footer>
+  Version pour agent, avec le niveau de preuve de chaque commande et le script de vérification : <code>MISE-EN-PLACE-AGENT.md</code>, même dossier. Architecture : <code>docs/architecture/</code>.
+</footer>
+
+</main>
+<script>
+document.querySelectorAll('.codeblock').forEach(function (block) {
+  var btn = document.createElement('button');
+  btn.className = 'copy';
+  btn.type = 'button';
+  btn.textContent = 'Copier';
+  btn.addEventListener('click', function () {
+    var text = block.querySelector('code').textContent;
+    var done = function () { btn.textContent = 'Copié'; setTimeout(function () { btn.textContent = 'Copier'; }, 1500); };
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(text).then(done, function () { btn.textContent = 'Échec'; });
+    } else {
+      btn.textContent = 'Indisponible';
+    }
+  });
+  block.appendChild(btn);
+});
+</script>
+</body>
+</html>
