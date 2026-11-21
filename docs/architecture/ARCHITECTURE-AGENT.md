@@ -15,6 +15,7 @@ Chaque affirmation factuelle porte un marqueur. Ne promeus jamais un `[J]` ou un
 | `[V]` | Vérifié par vote contradictoire (3 vérificateurs indépendants, 3-0) sur source primaire. |
 | `[P]` | Lu sur source primaire (doc officielle, dépôt, registre) par un seul agent de recherche, sans contre-vérification. |
 | `[E]` | Établi par un essai mené dans ce dépôt, consigné dans une ADR de `docs/architecture/adr/`. Vaut pour les versions et le périmètre de l'essai. |
+| `[R]` | Repris du rapport de veille Flutter/Dart 2026 fourni par l'utilisateur le 2026-11-21 (`docs/veille/flutter-dart-2026-AGENT.md`), non revérifié par cette étude. |
 | `[S]` | Source secondaire (blog, retour d'expérience d'un seul auteur, contenu d'éditeur). |
 | `[J]` | Jugement d'ingénierie de l'auteur de l'étude : raisonné, mais non sourcé. |
 | `[NV]` | Non vérifié ou non trouvé. À établir par un essai (voir §14) avant de s'y fier. |
@@ -55,6 +56,10 @@ Chaque affirmation factuelle porte un marqueur. Ne promeus jamais un `[J]` ou un
 5. **Synchronisation : moteur maison dans le cœur** (file de mutations, tirage par curseur, serveur d'autorité) `[J]`. Raison décisive : le SDK Rust de PowerSync ne fonctionne pas dans le navigateur `[P]`, ce qui casserait le cœur unique.
 6. **Une seule spécification Gherkin** à la racine, exécutée par cucumber-rs (cœur, TUI) et par `bdd_widget_test` (Flutter) via une copie synchronisée vérifiée en CI `[J]` sur faits `[P]`.
 7. **Point qui était le plus incertain** : la persistance SQLite hors ligne dans le navigateur depuis Rust. L'essai S2 l'a validée sur Chrome et Firefox `[E]`. **Safari reste à tester** `[NV]` avant tout engagement public sur le web applicatif.
+
+---
+
+8. **Mise à jour du 2026-11-21** : Flutter 3.50.1 remplace 3.50.0, `material_ui` remplace `package:flutter/material.dart`, et **`injectable_generator` ne se résout pas avec `bdd_widget_test` 3.1.0** `[E]` ; l'utilisateur a choisi de garder `injectable` avec `bdd_widget_test` 3.0.5 et des versions figées. Voir §20, à lire avant tout amorçage du côté Flutter.
 
 ---
 
@@ -519,7 +524,7 @@ final class NoteListFailure extends NoteListState {
 
 ### 6.4 Injection de dépendances
 
-- `injectable` 3.0.0 + `get_it` 9.3.0 `[P]`.
+- `injectable` 3.0.0 + `get_it` 9.3.0 `[P]`. **Contrainte de versions : voir §20.2** (`injectable_generator` impose `build` 4).
 - Environnements : `prod` (passerelles au-dessus du cœur Rust) et `test` (faux en mémoire, en Dart).
 - Le cœur Rust est initialisé une fois, dans `app/`, avant `runApp`. Sa configuration (chemin de base, URL du serveur) est passée à l'initialisation ; **la composition des adaptateurs Rust se fait dans le crate `core`, pas dans get_it**.
 - Sur le web sous Plan C (ADR-07), l'adaptateur de stockage Dart est enregistré dans get_it puis transmis au cœur à l'initialisation.
@@ -566,7 +571,7 @@ Tester les styles par assertion directe sur le `Buffer` pour les quelques cas o�
 
 - **Source de vérité : `features/` à la racine.** Organisation par contexte borné : `features/<contexte>/<capacité>.feature`.
 - **cucumber-rs** (0.23.0 `[P]`) lit ce dossier directement : le chemin des features est un argument du lanceur, non lié au crate `[P]`.
-- **bdd_widget_test** (3.1.0 `[P]`) est un générateur `build_runner` : le `.dart` est produit à côté du `.feature`, dans le paquet racine ; les sources de build sont limitées aux fichiers du paquet `[P]`. Il ne peut donc pas lire `features/` à la racine.
+- **bdd_widget_test** (3.1.0 `[P]`, version de l'essai S4 ; **incompatible avec `injectable_generator`, voir §20.2**) est un générateur `build_runner` : le `.dart` est produit à côté du `.feature`, dans le paquet racine ; les sources de build sont limitées aux fichiers du paquet `[P]`. Il ne peut donc pas lire `features/` à la racine.
 - Liens symboliques : **écartés** `[E]` (S4, Linux). `build_runner` suit le lien mais écrit ses fichiers générés dans le dossier source, et `flutter test` ne découvre pas les tests sous un répertoire lié.
 - **Décision**, confirmée par l'essai S4 `[E]` : un outil `tool/sync_features` copie vers `packages/app/test/features/` les `.feature` qui contiennent `@gui` (granularité : le fichier). Il supprime les copies orphelines. Les copies sont versionnées ; la CI exécute `sync_features --check`, qui échoue sur un fichier modifié, manquant ou orphelin. Modèle : `spikes/s4-gherkin/app/tool/sync_features.dart`.
 - **Un fichier `.feature` ne mélange pas les cibles** `[E]` : un scénario sans `@gui` placé dans un fichier copié est quand même généré côté Dart, avec des étapes en `UnimplementedError`. Les scénarios réservés au cœur vont donc dans des fichiers sans aucun `@gui`. Les `_test.dart` générés ne sont jamais édités ; les fichiers d'étapes sont créés une fois puis maintenus à la main `[P]`.
@@ -766,7 +771,7 @@ Tous les paquets du monorepo qui utilisent FRB doivent partager la même version
 |---|---|---|
 | `rustfmt`, `clippy` | toolchain épinglée | `cargo fmt --check` ; `cargo clippy --workspace --all-targets -- -D warnings` |
 | `cargo-deny` | 0.20.2 `[P]` | licences, avis de sécurité, doublons |
-| `very_good_analysis` | 11.0.0 (SDK ^3.13) `[P]` | `dart analyze --fatal-infos` |
+| `very_good_analysis` | 11.0.0 (SDK ^3.13) `[P]` | `dart analyze --fatal-infos` ; exige d'importer `material_ui` dès le premier fichier (§20.3) |
 | `bloc_lint` | 0.4.3 `[P]` | règle `prefer_bloc` |
 | `dart format` | SDK | `--output=none --set-exit-if-changed` |
 | contrôle d'imports | `import_rules` 0.0.8 ou script | couches FSD, isolement de `core_bridge` |
@@ -797,7 +802,7 @@ flutter test
 
 Chaque générateur est rejoué en CI, puis `git diff --exit-code` :
 - `flutter_rust_bridge_codegen generate`
-- `dart run build_runner build --delete-conflicting-outputs`
+- `dart run build_runner build` (l'option `--delete-conflicting-outputs` n'existe plus en `build_runner` 2.16.1 `[E]`)
 - génération des tokens
 - `sync_features --check`
 
@@ -870,6 +875,7 @@ Chaque essai est un prototype jetable, borné dans le temps, avec un critère de
 | **S3** (à mener) | En-têtes `COOP: same-origin` + `COEP: require-corp` sur l'hébergeur visé ; connexion par redirection | `crossOriginIsolated` vrai sur Safari ; connexion fonctionnelle | Changer d'hébergeur. Le mode sans en-têtes n'est plus un repli : il est incompatible avec le plan A de stockage (§3.7). Si Safari échoue : plan C |
 | **S4** ✅ | **Réussi le 2026-11-18** (`adr/S4-gherkin-partage.md`), dialecte plus étroit que prévu : voir §8. Énoncé d'origine : un `.feature` partagé : cucumber-rs + `bdd_widget_test` avec `literalParameters`, `# language: fr`, une table, un `Scenario Outline`, une étiquette d'exclusion | Les deux exécutants passent sur le même fichier ; `sync_features --check` détecte un écart | Dialecte plus restreint, ou `gherkart` |
 | **S5** ❌ | **Critère non atteint le 2026-11-18** (`adr/S5-flux-web.md`) : pertes et blocages mesurés ; le repli est adopté comme forme unique (§5.4). Énoncé d'origine : flux FRB sur le web : 1 000 émissions, annulation d'abonnement, rechargement à chaud | Aucune perte, aucun blocage | Repli sur requêtes ponctuelles + notification de changement |
+| **S7** ✅ | **Réussi le 2026-11-21** (`adr/S7-chaine-generation.md`) : chaîne de génération figée sur `build` 4, avec `injectable` | Génération et scénarios de S4 verts | Option B du §20.2 |
 | **S6** ✅ | **Réussi le 2026-11-18** (`adr/S6-jetons-ratatui.md`) ; reste la sortie Dart `ThemeExtension`. Énoncé d'origine : format Style Dictionary personnalisé vers Rust | Palette ratatui générée et utilisée par un atome | Générateur `build.rs` maison |
 
 Autres risques suivis :
@@ -926,13 +932,15 @@ Chaque étape se termine par les gates vertes et un commit.
 
 | Composant | Version | Preuve |
 |---|---|---|
-| Flutter stable / Dart | 3.50.0 / 3.14.0 (2026-11-11) | `[P]` |
+| Flutter stable / Dart | **3.50.1** / 3.14.0 (hotfix du 2026-11-20 ; installé localement `[E]`). Les essais S1 à S6 ont tourné en 3.50.0. | `[R]` `[E]` |
 | flutter_rust_bridge | 2.13.0 stable ; 2.14.0-beta.2 | `[V]` |
 | hooks / native_toolchain_rust / flutter_rust_bridge_hooks | 2.2.0 / 1.1.1 / 2.13.0 | `[P]` |
 | Melos | 8.10.1 | `[P]` |
 | bloc / flutter_bloc / bloc_lint | 9.2.1 / 9.1.1 / 0.4.3 | `[P]` |
 | injectable / get_it | 3.0.0 / 9.3.0 | `[P]` |
-| bdd_widget_test | 3.1.0 (Dart ≥ 3.11) | `[P]` |
+| bdd_widget_test | **3.0.5** (référence, option A du §20.2) ; la 3.1.0 exige `build` 5 | `[E]` |
+| build_runner / build / analyzer | 2.16.1 / 4.0.11 / 14.1.0 | `[E]` |
+| freezed / json_serializable / retrofit_generator | 4.0.3 / 6.15.2 / 10.3.3 | `[E]` |
 | very_good_analysis | 11.0.0 | `[P]` |
 | widgetbook | 3.25.0 | `[P]` |
 | alchemist / patrol | 0.14.1 / 4.11.0 | `[P]` |
@@ -1038,3 +1046,118 @@ Chaque étape se termine par les gates vertes et un commit.
 **CI**
 - https://docs.github.com/en/actions/reference/runners/github-hosted-runners
 - https://invertase.docs.page/melos/guides/migrations
+
+---
+
+## 20. Mise à jour du 2026-11-21 : Flutter 3.50.1, Dart 3.14 et chaîne de génération de code
+
+Origine : un rapport de veille fourni par l'utilisateur, repris dans `docs/veille/flutter-dart-2026-AGENT.md` (marqueur `[R]`), plus deux résolutions de dépendances faites ici (`[E]`). Cette section prime sur le reste du document quand elle le contredit.
+
+### 20.1 Ce qui ne change pas
+
+Le découpage (cœur Rust, pont FRB, coques), les ADR-01 à ADR-11 et les résultats des essais restent valables. Aucun changement de Flutter ou de Dart en 2026 ne remet en cause le cœur Rust : l'interop native stable (FFIgen Objective-C, JNIgen) vise C, Objective-C, Java et Kotlin, pas Rust `[R]`. Elle sert en revanche aux intégrations plateforme côté Dart (§20.6).
+
+### 20.2 Conflit de générateurs de code (bloquant pour l'amorçage Flutter)
+
+Fait établi `[E]` (résolution `flutter pub get` du 2026-11-21, Flutter 3.50.1, Dart 3.14.0 ; résolution seule, **aucune génération exécutée**) :
+
+- `bdd_widget_test` ≥ 3.1.0 dépend de `build ^5.0.0`. Toutes les versions de `injectable_generator`, 3.1.3 comprise, plafonnent à `build ^4.0.4`. **Les deux ne se résolvent pas ensemble.**
+- L'essai S4 a tourné avec `bdd_widget_test` 3.1.0, `build_runner` 2.17.1 et `build` 5.0.0, **sans `injectable`** : il n'a pas vu le conflit.
+- Une combinaison se résout :
+
+| Paquet | Version résolue |
+|---|---|
+| `analyzer` | 14.1.0 |
+| `build` / `build_runner` | 4.0.11 / 2.16.1 |
+| `injectable` / `injectable_generator` | 3.0.0 / 3.1.3 |
+| `bdd_widget_test` | 3.0.5 |
+| `freezed` / `json_serializable` | 4.0.3 / 6.15.2 |
+| `get_it` / `flutter_bloc` / `very_good_analysis` | 9.3.0 / 9.1.1 / 11.0.0 |
+
+Le rapport signale en plus que `injectable_generator` 3.1.3 est incompatible avec `analyzer` ≥ 14.6 et `build_runner` ≥ 2.17.1 (issues #552 et #554, non résolues à sa connaissance) `[R]`. Il affirme aussi qu'aucune combinaison ne réunit `freezed` à jour et `injectable_generator` : la résolution ci-dessus montre que `freezed` 4.0.3 cohabite avec lui tant que `build` reste en 4 et `analyzer` sous 14.6. L'essai S7 a ensuite établi que la génération fonctionne réellement avec cet ensemble `[E]` (`adr/S7-chaine-generation.md`).
+
+**Décision de l'utilisateur (2026-11-21) : option A, garder `injectable`.** L'option B reste le repli si l'essai S7 échoue ou si le blocage amont persiste.
+
+| Option | Contenu | Coût |
+|---|---|---|
+| **A, retenue** | Garder `injectable`. Épingler exactement l'ensemble du tableau, dont `bdd_widget_test` 3.0.5 et `build_runner` 2.16.1. `pubspec.lock` versionné. | Chaîne figée sur `build` 4. Validée par l'essai S7 `[E]` |
+| **B, repli** | Retirer `injectable_generator` ; enregistrements `get_it` écrits à la main dans le module de composition. Permet `build` 5 et `bdd_widget_test` 3.1.0. | Abandon d'une pratique de l'utilisateur ; les *primary constructors* de Dart 3.13 réduisent le code à écrire `[R]` |
+
+Règles, quelle que soit l'option :
+- Toutes les versions de génération (`build_runner`, `build`, `analyzer`, `freezed`, `json_serializable`, `injectable_generator`, `bdd_widget_test`) DOIVENT être épinglées exactement. Pas de `dependency_overrides` pour forcer une résolution.
+- Suivre l'issue `injectable` #554. Le rapport propose de sortir `injectable` si elle n'est pas résolue d'ici Flutter 3.53 (février 2027) `[R]`.
+- **Essai S7, réussi le 2026-11-21** `[E]` (`adr/S7-chaine-generation.md`, prototype `spikes/s7-codegen/`) :
+  - `injectable_generator`, `freezed`, `json_serializable`, `retrofit_generator` et `bdd_widget_test` 3.0.5 génèrent ensemble sous `build_runner` 2.16.1 ; le code généré s'analyse sans problème et un test d'exécution passe.
+  - Le `.feature` de S4 passe (5 scénarios `@gui` sur 5). Le test généré par la 3.0.5 est identique octet pour octet à celui de la 3.1.0 : **le dialecte du §8.3 vaut pour la 3.0.5**.
+  - Le défaut de corruption des fichiers d'étapes à la première génération (§8.3) existe aussi en 3.0.5 : deux générations à neuf sur trois.
+  - `build.yaml` DOIT lister `lib/**` et `test/**` dans `sources` : sans `lib/**`, les générateurs ignorent `lib/` sans erreur.
+  - Première génération 33 s, puis 9 s.
+  - Non couvert : le générateur de FRB n'a pas été exécuté (seul son paquet Dart est résolu) ; `widgetbook` et `alchemist` ne sont pas dans l'ensemble.
+- Le `pubspec.lock` de `spikes/s7-codegen/app/` fait foi pour l'ensemble exact des versions.
+- Ce conflit renforce la règle du §5.4 sur les enums à champs : ne pas introduire `freezed` pour le pont tant que la chaîne n'est pas stabilisée.
+
+### 20.3 `material_ui` et `cupertino_ui`
+
+- Depuis Flutter 3.50, `package:flutter/material.dart` et `package:flutter/cupertino.dart` sont `@Deprecated`, au profit des paquets `material_ui` et `cupertino_ui` (1.0 depuis 3.47), publiés à cadence hebdomadaire, indépendamment du SDK. Aucune date de suppression des anciens imports n'est annoncée `[R]`.
+- L'essai S4 l'a rencontré sans le relever : les tests générés par `bdd_widget_test` importent `material_ui` 1.11.1 par défaut `[E]`.
+- Règles pour ce dépôt, qui part de zéro :
+  - Tout code Dart DOIT importer `package:material_ui/…` (ou `cupertino_ui`), jamais `package:flutter/material.dart`. Sinon la gate `dart analyze --fatal-infos` (§11.2) échoue sur les dépréciations.
+  - La version de `material_ui` DOIT être épinglée exactement dans `packages/design_system` et régénérer les goldens fait partie de toute montée de version.
+  - `MaterialUiCompatibilityBridge` permet de cohabiter avec des dépendances restées sur les anciens imports `[R]`.
+- Non vérifié `[NV]` : compatibilité de `widgetbook` 3.25.0 et de `alchemist` 0.14.1 avec `material_ui`. À vérifier à l'étape « Design system » de la feuille de route.
+
+### 20.4 Version de Flutter
+
+- **Cible : 3.50.1, jamais 3.50.0** `[R]`. La 3.50.0 exclut en silence de l'APK/AAB les assets dont le nom commence par un point (dont `.env`), casse la configuration Gradle des types de build personnalisés dès qu'un plugin est présent, et décale le rendu sous Linux sur certains pilotes, Nvidia compris. Le 3.50.1 corrige aussi un gel du rendu de texte en `--wasm` sous isolation cross-origin, qui concernera l'app web le jour où elle passera à dart2wasm (§3.5).
+- Les essais S1, S2, S4, S5 et S6 ont tourné en 3.50.0. Rien n'indique que leurs résultats changent en 3.50.1, mais ce n'est pas vérifié `[NV]` : le squelette de l'étape 1 de la feuille de route les rejouera de fait.
+- Politique `[J]`, appuyée sur la cadence désormais trimestrielle et publique (février, mai, août, novembre) `[R]` : ne jamais adopter une version `x.y.0` ; attendre le premier correctif. Épingler la version de Flutter dans la CI.
+
+### 20.5 Dart 3.13 et 3.14
+
+- *Primary constructors* stables (3.13) et paramètres nommés privés (3.12) : ils PEUVENT servir pour les events et states `sealed` et pour les modèles côté interface, sans générateur `[R]`.
+- Rupture de 3.13 : `final` et `var` sont interdits sur les paramètres non déclarants `[R]`. Ne pas en écrire.
+- Les macros restent abandonnées : `build_runner` est la seule voie de génération `[R]`.
+- `dart:mirrors` est déprécié (3.14) `[R]`.
+- Les *primary constructors* de `freezed` ne supportent pas `fromJson`/`toJson` `[R]`.
+
+### 20.6 Web
+
+- `dart:html`, `dart:js`, `dart:js_util` et `package:js` sont dépréciés, suppression annoncée `[R]`. La règle du §6.5 devient une gate : le job web DOIT construire avec `--no-deprecated-js-interop`, qui échoue si une dépendance transitive les importe.
+- `--web-content-hash` hache les noms de fichiers et produit un `precache_manifest.json` `[R]` : à adopter pour le déploiement de l'app web. Bogue de 3.50.0 corrigé en 3.50.1 : `index.html` supprimé après un build avec puis sans ce drapeau.
+- Wasm : toujours sur activation explicite (`wasmAllowList`) pour Safari 26.2+ et Firefox 147+ `[R]`, ce qui confirme le §3.5. La décision de rester en dart2js tant que FRB stable est en 2.13 ne change pas.
+
+### 20.7 Cibles Apple et Android
+
+Ces points s'ajoutent au risque « aucune cible Apple testée » du §14.
+
+- **SwiftPM est le défaut depuis 3.44**, et le dépôt central CocoaPods passe en lecture seule le 2026-12-02 `[R]`. Le comportement du backend `native-assets` de FRB avec SwiftPM n'est pas vérifié `[NV]` : à couvrir par le job macOS prévu au §15.
+- Minimums depuis 3.47 : iOS 15, macOS 12. Le cycle de vie `UIScene` est obligatoire avec le SDK iOS 27 `[R]`.
+- Les Mac Intel ne sont plus testés par Flutter, et une future version exigera Apple Silicon pour construire iOS, macOS et Android `[R]`. La CI NE DOIT PAS s'appuyer sur les runners `macos-*-intel` listés au §11.4 pour Flutter.
+- Android, nouveaux projets : AGP 9.3.1, Gradle 9.5.0, Kotlin 2.4.20, Java 17 minimum, `compileSdk`/`targetSdk` 36, `minSdk` 24 `[R]`. L'essai S1 a utilisé SDK 36.1.0, NDK 28.2 et JDK 21 `[E]`.
+- Les plugins qui appliquent encore manuellement le plugin Gradle Kotlin ne se construiront plus sous AGP 10 `[R]` : à contrôler pour toute dépendance ajoutée.
+- En release, les extras d'`Intent` externes (`route`, `dart_entrypoint`, `cached_engine_id`) sont ignorés `[R]` : en tenir compte pour les liens profonds.
+
+### 20.8 Desktop et tests visuels
+
+- Impeller est le moteur de rendu par défaut sur macOS, Windows et Linux depuis 3.47 `[R]`. Les goldens produits sous Linux en dépendent.
+- Rendus modifiés en 3.50 : césures conditionnelles visibles, ordre des `WidgetSpan` en texte de droite à gauche `[R]`.
+- Règle : les goldens DOIVENT être régénérés à chaque montée de Flutter ou de `material_ui`, dans une PR dédiée, et tourner dans un job isolé.
+- Le multi-fenêtres reste expérimental en 3.50 `[R]` : ne pas le planifier.
+
+### 20.9 Intégrations plateforme
+
+FFIgen (Objective-C) et JNIgen (Java, Kotlin) sont stables depuis 3.50 : appels natifs directs, synchrones possibles, y compris depuis des isolates d'arrière-plan `[R]`. Pour les adaptateurs de plateforme écrits en Dart (trousseau, fichiers, notifications), cette voie PEUT remplacer un `MethodChannel`. Les liaisons générées DOIVENT rester derrière une interface du segment `data`, pour rester remplaçables par un faux en test.
+
+### 20.10 Outillage d'agent
+
+- Serveur MCP Dart/Flutter avec rechargement à chaud piloté par l'agent, et *skills* de paquets (`skills/`, `dart run skills@ get`) `[R]`.
+- La règle officielle `flutter-hot-reload`, qui recharge après chaque édition sous `lib/`, n'apporte rien dans la double boucle du §8.4, où le retour vient de `flutter test` : la désactiver ou l'encadrer `[R]`.
+- GenUI est en alpha et A2UI en version candidate `[R]` : hors périmètre.
+
+### 20.11 Ce que cette mise à jour ajoute à la feuille de route
+
+1. Étape 6 (« Flutter ») : partir de l'ensemble de versions validé par l'essai S7 (§20.2).
+2. Étape 1 : épingler Flutter 3.50.1 et les versions du tableau du §20.2.
+3. Étape 7 : vérifier `widgetbook` et `alchemist` avec `material_ui`.
+4. Job macOS : couvrir SwiftPM avec le backend `native-assets`.
+

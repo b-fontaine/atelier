@@ -1,0 +1,451 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Flutter et Dart en 2026</title>
+<style>
+:root{
+  --bg:#fbfaf7; --surface:#ffffff; --ink:#1d1c1a; --muted:#6b665e; --line:#d9d5cc;
+  --flutter:#1b6fb5; --flutter-bg:#e8f2fb;
+  --dart:#0e7c7b; --dart-bg:#e4f4f3;
+  --ok:#2f7d4f; --ok-bg:#e9f5ee;
+  --warn:#9a6700; --warn-bg:#fff4d6;
+  --bad:#b3261e; --bad-bg:#fbe9e7;
+  --code-bg:#f1eee8;
+}
+@media (prefers-color-scheme: dark){
+  :root{
+    --bg:#16171a; --surface:#1f2126; --ink:#e9e7e2; --muted:#a09c94; --line:#3a3d45;
+    --flutter:#6fb1e8; --flutter-bg:#17293a;
+    --dart:#5fc9c6; --dart-bg:#11302f;
+    --ok:#6cc08d; --ok-bg:#17301f;
+    --warn:#e0b040; --warn-bg:#3a2e10;
+    --bad:#f08a80; --bad-bg:#3b1a17;
+    --code-bg:#2a2c32;
+  }
+}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{margin:0;background:var(--bg);color:var(--ink);
+  font:16px/1.6 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+main{max-width:980px;margin:0 auto;padding:32px 16px 80px}
+h1{font-size:2rem;line-height:1.2;margin:0 0 8px}
+h2{font-size:1.4rem;margin:56px 0 12px;padding-top:12px;border-top:1px solid var(--line)}
+h3{font-size:1.08rem;margin:28px 0 8px}
+p{margin:0 0 12px}
+.lead{font-size:1.1rem;color:var(--muted);margin-bottom:24px}
+a{color:var(--flutter)}
+code{background:var(--code-bg);padding:1px 5px;border-radius:4px;font-size:.9em;
+  font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace}
+pre{background:var(--code-bg);border-radius:8px;padding:12px 14px;overflow-x:auto;margin:12px 0}
+pre code{background:none;padding:0}
+nav{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:14px 18px;margin:24px 0}
+nav ol{margin:0;padding-left:20px;columns:2;column-gap:32px}
+@media (max-width:640px){nav ol{columns:1}}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:16px 18px;margin:14px 0}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(270px,1fr));gap:14px;margin:14px 0}
+.grid .card{margin:0}
+.card h3{margin-top:0}
+.key{border-left:4px solid var(--flutter)}
+.alert{background:var(--bad-bg);border:1px solid var(--bad);border-radius:10px;padding:12px 16px;margin:14px 0}
+.note{background:var(--warn-bg);border:1px solid var(--warn);border-radius:10px;padding:12px 16px;margin:14px 0}
+.good{background:var(--ok-bg);border:1px solid var(--ok);border-radius:10px;padding:12px 16px;margin:14px 0}
+.tag{display:inline-block;font-size:.72rem;font-weight:600;padding:1px 8px;border-radius:999px;
+  border:1px solid currentColor;white-space:nowrap;vertical-align:middle}
+.t-ok{color:var(--ok)} .t-warn{color:var(--warn)} .t-bad{color:var(--bad)} .t-info{color:var(--flutter)}
+.tablewrap{overflow-x:auto;margin:14px 0}
+table{border-collapse:collapse;width:100%;min-width:560px;background:var(--surface);font-size:.94rem}
+th,td{border:1px solid var(--line);padding:8px 10px;text-align:left;vertical-align:top}
+th{background:var(--code-bg);font-weight:600}
+figure{margin:18px 0;background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:14px}
+figure .scroll{overflow-x:auto}
+figure svg{display:block;width:100%;min-width:700px;height:auto}
+figcaption{color:var(--muted);font-size:.9rem;margin-top:10px}
+svg text{font-family:inherit;font-size:13px;fill:var(--ink)}
+svg .small{font-size:11.5px;fill:var(--muted)}
+svg .ttl{font-weight:600;font-size:14px}
+svg .fl{fill:var(--flutter-bg);stroke:var(--flutter);stroke-width:1.5}
+svg .da{fill:var(--dart-bg);stroke:var(--dart);stroke-width:1.5}
+svg .axis{stroke:var(--muted);stroke-width:2}
+svg .dot{fill:var(--muted)}
+svg .link{stroke:var(--line);stroke-width:1.5}
+.checklist{list-style:none;padding:0;margin:14px 0;display:grid;gap:8px}
+.checklist li{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:10px 14px 10px 44px;position:relative}
+.checklist li::before{content:"";position:absolute;left:14px;top:13px;width:16px;height:16px;border:2px solid var(--muted);border-radius:4px}
+.steps{list-style:none;padding:0;margin:14px 0;display:grid;gap:8px;counter-reset:s}
+.steps li{counter-increment:s;background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:10px 14px 10px 48px;position:relative}
+.steps li::before{content:counter(s);position:absolute;left:12px;top:10px;width:24px;height:24px;border-radius:50%;
+  background:var(--code-bg);text-align:center;line-height:24px;font-weight:600;font-size:.85rem}
+ul{padding-left:22px;margin:0 0 12px}
+li{margin:3px 0}
+footer{margin-top:56px;color:var(--muted);font-size:.9rem;border-top:1px solid var(--line);padding-top:16px}
+</style>
+</head>
+<body>
+<main>
+
+<h1>Flutter et Dart en 2026</h1>
+<p class="lead">Ce qui a changé cette année, ce qui casse, et ce qu'un développeur Dart/Flutter doit surveiller. État au 21 novembre 2026.</p>
+
+<div class="card key">
+  <h3>L'essentiel</h3>
+  <ul>
+    <li><b>Flutter 3.50 est la version stable</b> depuis le 11 novembre, avec Dart 3.14. Un correctif 3.50.1 est sorti le 20 novembre : <b>installez 3.50.1, jamais 3.50.0</b>.</li>
+    <li><b>Material et Cupertino quittent le SDK.</b> <code>material.dart</code> et <code>cupertino.dart</code> sont dépréciés, remplacés par les paquets <code>material_ui</code> et <code>cupertino_ui</code>. C'est le changement de l'année.</li>
+    <li><b>La chaîne d'outils bouge partout à la fois</b> : SwiftPM sur iOS, Kotlin intégré et AGP 9 sur Android, nouvelles versions des outils de génération de code.</li>
+    <li><b>Le langage Dart a peu évolué</b> : deux ajouts réels dans l'année, et deux versions sur quatre sans aucune nouveauté de langage.</li>
+    <li><b>Les générateurs de code ne sont plus tous compatibles entre eux.</b> C'est le risque le plus concret pour un projet existant.</li>
+  </ul>
+</div>
+
+<div class="card">
+  <h3>D'où viennent ces informations</h3>
+  <p style="margin:0">Cette page reprend un rapport de veille fondé surtout sur les billets, docs et changelogs officiels de Flutter et Dart. Quelques points n'ont pas pu y être vérifiés ; ils sont signalés par <span class="tag t-warn">non vérifié</span>. Les points portant <span class="tag t-ok">testé ici</span> ont été contrôlés dans ce dépôt le 21 novembre 2026.</p>
+</div>
+
+<nav aria-label="Sommaire">
+  <ol>
+    <li><a href="#frise">L'année en une frise</a></li>
+    <li><a href="#vigilance">Les points de vigilance</a></li>
+    <li><a href="#material">Material quitte le SDK</a></li>
+    <li><a href="#codegen">Le conflit des générateurs de code</a></li>
+    <li><a href="#flutter350">Flutter 3.50 dans le détail</a></li>
+    <li><a href="#plateformes">Plateforme par plateforme</a></li>
+    <li><a href="#dart">Le langage Dart</a></li>
+    <li><a href="#tests">Tests et rendus de référence</a></li>
+    <li><a href="#ia">IA : livré ou promis</a></li>
+    <li><a href="#eco">Écosystème et gouvernance</a></li>
+    <li><a href="#bruit">Signal et bruit</a></li>
+    <li><a href="#limites">Limites</a></li>
+  </ol>
+</nav>
+
+<h2 id="frise">1. L'année en une frise</h2>
+<p>Quatre versions stables de Flutter et quatre de Dart, sorties ensemble. La cadence trimestrielle, avec des dates de coupe publiées à l'avance, est une nouveauté de 2026 et elle a été tenue.</p>
+
+<figure>
+  <div class="scroll">
+  <svg viewBox="0 0 900 250" role="img" aria-label="Frise des versions stables de Flutter et Dart en 2026">
+    <line class="axis" x1="20" y1="125" x2="880" y2="125"/>
+
+    <line class="link" x1="120" y1="95" x2="120" y2="155"/><circle class="dot" cx="120" cy="125" r="5"/>
+    <line class="link" x1="340" y1="95" x2="340" y2="155"/><circle class="dot" cx="340" cy="125" r="5"/>
+    <line class="link" x1="560" y1="95" x2="560" y2="155"/><circle class="dot" cx="560" cy="125" r="5"/>
+    <line class="link" x1="780" y1="95" x2="780" y2="155"/><circle class="dot" cx="780" cy="125" r="5"/>
+
+    <rect class="fl" x="25" y="15" width="190" height="80" rx="8"/>
+    <text class="ttl" x="120" y="37" text-anchor="middle">Flutter 3.41</text>
+    <text class="small" x="120" y="54" text-anchor="middle">11 février</text>
+    <text class="small" x="120" y="71" text-anchor="middle">cadence publique</text>
+    <text class="small" x="120" y="86" text-anchor="middle">UIScene par défaut</text>
+
+    <rect class="fl" x="245" y="15" width="190" height="80" rx="8"/>
+    <text class="ttl" x="340" y="37" text-anchor="middle">Flutter 3.44</text>
+    <text class="small" x="340" y="54" text-anchor="middle">18 mai · Google I/O</text>
+    <text class="small" x="340" y="71" text-anchor="middle">SwiftPM par défaut</text>
+    <text class="small" x="340" y="86" text-anchor="middle">gel de Material</text>
+
+    <rect class="fl" x="465" y="15" width="190" height="80" rx="8"/>
+    <text class="ttl" x="560" y="37" text-anchor="middle">Flutter 3.47</text>
+    <text class="small" x="560" y="54" text-anchor="middle">12 août</text>
+    <text class="small" x="560" y="71" text-anchor="middle">material_ui 1.0</text>
+    <text class="small" x="560" y="86" text-anchor="middle">Impeller sur desktop</text>
+
+    <rect class="fl" x="685" y="15" width="190" height="80" rx="8"/>
+    <text class="ttl" x="780" y="37" text-anchor="middle">Flutter 3.50</text>
+    <text class="small" x="780" y="54" text-anchor="middle">11 novembre · 3.50.1 le 20</text>
+    <text class="small" x="780" y="71" text-anchor="middle">material.dart déprécié</text>
+    <text class="small" x="780" y="86" text-anchor="middle">interop native stable</text>
+
+    <rect class="da" x="25" y="155" width="190" height="80" rx="8"/>
+    <text class="ttl" x="120" y="178" text-anchor="middle">Dart 3.11</text>
+    <text class="small" x="120" y="197" text-anchor="middle">aucun ajout au langage</text>
+    <text class="small" x="120" y="213" text-anchor="middle">analyse plus rapide</text>
+
+    <rect class="da" x="245" y="155" width="190" height="80" rx="8"/>
+    <text class="ttl" x="340" y="178" text-anchor="middle">Dart 3.12</text>
+    <text class="small" x="340" y="197" text-anchor="middle">paramètres nommés privés</text>
+    <text class="small" x="340" y="213" text-anchor="middle">rechargement par agent</text>
+
+    <rect class="da" x="465" y="155" width="190" height="80" rx="8"/>
+    <text class="ttl" x="560" y="178" text-anchor="middle">Dart 3.13</text>
+    <text class="small" x="560" y="197" text-anchor="middle">primary constructors</text>
+    <text class="small" x="560" y="213" text-anchor="middle">final interdit en paramètre</text>
+
+    <rect class="da" x="685" y="155" width="190" height="80" rx="8"/>
+    <text class="ttl" x="780" y="178" text-anchor="middle">Dart 3.14</text>
+    <text class="small" x="780" y="197" text-anchor="middle">aucun ajout au langage</text>
+    <text class="small" x="780" y="213" text-anchor="middle">dart migrate</text>
+  </svg>
+  </div>
+  <figcaption>Les dates de 3.44 et de Dart 3.11 varient d'un à deux jours selon la source officielle consultée (docs, billet, changelog).</figcaption>
+</figure>
+
+<h2 id="vigilance">2. Les points de vigilance</h2>
+<p>Si vous ne retenez qu'une section, c'est celle-ci. Elle est classée par urgence.</p>
+
+<div class="alert"><b>À traiter avant le 2 décembre 2026 :</b> le dépôt central CocoaPods passe en lecture seule. Si votre projet iOS a désactivé SwiftPM, réactivez-le maintenant.</div>
+
+<ul class="checklist">
+  <li><b>Version de Flutter :</b> passez directement en 3.50.1. La 3.50.0 exclut en silence les fichiers <code>.env</code> des paquets Android et casse les builds à types personnalisés.</li>
+  <li><b>Générateurs de code :</b> figez les versions de <code>build_runner</code>, <code>analyzer</code>, <code>freezed</code>, <code>json_serializable</code>, <code>injectable_generator</code> et versionnez <code>pubspec.lock</code>. Voir la <a href="#codegen">section 4</a>.</li>
+  <li><b>Intégration continue :</b> si elle refuse les avertissements (<code>--fatal-infos</code>), la dépréciation de <code>material.dart</code> la fera échouer sur des centaines de lignes. Un projet open source en a compté 237 le lendemain de la sortie.</li>
+  <li><b>Migration Material :</b> faites-la dans une demande de fusion isolée, jamais mélangée à la montée de SDK.</li>
+  <li><b>Rendus de référence (goldens) :</b> régénérez-les à chaque montée de version. Plusieurs changements de rendu sont passés cette année.</li>
+  <li><b>iOS :</b> vérifiez vos <code>AppDelegate</code> personnalisés pour <code>UIScene</code>, obligatoire avec le SDK iOS 27 ; minimum iOS 15.</li>
+  <li><b>Mac Intel :</b> ils ne sont plus testés. Planifiez le remplacement de ceux de votre CI.</li>
+  <li><b>Android :</b> vos plugins internes doivent passer au Kotlin intégré, sinon ils ne se construiront plus sous AGP 10.</li>
+  <li><b>Web :</b> <code>dart:html</code>, <code>dart:js</code> et <code>package:js</code> sont dépréciés. Ajoutez <code>--no-deprecated-js-interop</code> à votre build pour débusquer les dépendances qui les utilisent encore.</li>
+  <li><b>Dart 3.13 :</b> <code>final</code> et <code>var</code> ne sont plus acceptés sur certains paramètres. <code>dart migrate</code> corrige automatiquement.</li>
+</ul>
+
+<h3>L'ordre conseillé pour monter de version</h3>
+<ol class="steps">
+  <li>Le SDK seul, de 3.47 à 3.50.1.</li>
+  <li><code>dart migrate --dry-run</code>, puis <code>dart migrate --apply --step=prepare</code>, avant de relever la contrainte de SDK.</li>
+  <li><code>dart fix --apply --code=migrate_design_widgets</code> pour passer à <code>material_ui</code>.</li>
+  <li>La régénération des rendus de référence.</li>
+</ol>
+<p>Quatre demandes de fusion distinctes : si une régression apparaît, vous saurez laquelle l'a introduite.</p>
+
+<h2 id="material">3. Material quitte le SDK</h2>
+<p>Jusqu'ici, les widgets Material et Cupertino faisaient partie de Flutter lui-même. Ils deviennent deux paquets ordinaires, publiés chaque semaine, indépendamment du SDK.</p>
+
+<div class="tablewrap"><table>
+  <tr><th>Version</th><th>Étape</th></tr>
+  <tr><td>3.44 (mai)</td><td>Gel : plus d'évolution de Material et Cupertino dans le cœur.</td></tr>
+  <tr><td>3.47 (août)</td><td><code>material_ui</code> et <code>cupertino_ui</code> sortent en 1.0 ; adoption facultative.</td></tr>
+  <tr><td>3.50 (novembre)</td><td><code>package:flutter/material.dart</code> et <code>cupertino.dart</code> sont dépréciés ; <code>flutter create</code> utilise <code>material_ui</code>.</td></tr>
+</table></div>
+
+<div class="grid">
+  <div class="card">
+    <h3>Ce que vous y gagnez</h3>
+    <p style="margin:0">Les évolutions de design (Material 3 Expressive, Liquid Glass) arrivent sans attendre une version de Flutter.</p>
+  </div>
+  <div class="card">
+    <h3>Ce que cela coûte</h3>
+    <p style="margin:0">Une migration à faire, des montées de version majeures en cascade dans vos dépendances d'interface, et un paquet qui peut casser chaque semaine : figez sa version.</p>
+  </div>
+  <div class="card">
+    <h3>Ce qu'on ne sait pas</h3>
+    <p style="margin:0">Aucune date de suppression des anciens imports n'est annoncée. Vous avez du temps, mais pas de calendrier.</p>
+  </div>
+</div>
+
+<h3>Comment migrer</h3>
+<pre><code>dart fix --apply --code=migrate_design_widgets</code></pre>
+<ul>
+  <li>Si l'outil échoue sur <code>pubspec.yaml</code> (bogue connu) : lancez <code>flutter pub add material_ui</code>, puis relancez la commande.</li>
+  <li><code>MaterialUiCompatibilityBridge</code> permet de migrer votre application alors que certaines dépendances utilisent encore les anciens imports.</li>
+  <li>Un seul délégué de localisation suffit désormais : <code>GlobalMaterialLocalizations.delegates</code> couvre aussi Cupertino et Widgets.</li>
+</ul>
+
+<h2 id="codegen">4. Le conflit des générateurs de code</h2>
+<p>Les macros de Dart ont été abandonnées en janvier 2025 et rien ne les remplace : <code>build_runner</code> reste la seule voie pour générer du code. Or ses dernières versions exigent le paquet <code>build</code> en version 5, que tous les générateurs ne suivent pas encore.</p>
+
+<div class="alert"><b>Constat :</b> <code>injectable_generator</code> plafonne à <code>build</code> 4. Il ne peut pas être installé avec <code>build_runner</code> 2.17.x, ni avec <code>bdd_widget_test</code> 3.1.0 qui exige <code>build</code> 5 <span class="tag t-ok">testé ici</span>.</div>
+
+<div class="good"><b>Une combinaison s'installe</b> <span class="tag t-ok">testé ici</span> : <code>analyzer</code> 14.1.0, <code>build</code> 4.0.11, <code>build_runner</code> 2.16.1, <code>injectable_generator</code> 3.1.3, <code>bdd_widget_test</code> 3.0.5, <code>freezed</code> 4.0.3, <code>json_serializable</code> 6.15.2. Le test ne porte que sur l'installation des dépendances : la génération elle-même n'a pas été exécutée.</div>
+
+<p>Le rapport d'origine affirmait qu'on ne pouvait plus avoir <code>freezed</code> et <code>injectable</code> à jour ensemble. Le test montre que <code>freezed</code> n'est pas en cause : le blocage vient uniquement du passage à <code>build</code> 5.</p>
+
+<h3>Trois façons d'en sortir</h3>
+<div class="tablewrap"><table>
+  <tr><th>Option</th><th>Principe</th><th>Avis</th></tr>
+  <tr><td><b>Geler</b></td><td>Rester sur <code>build</code> 4 avec des versions figées.</td><td>Recommandé à court terme.</td></tr>
+  <tr><td>Forcer</td><td><code>dependency_overrides</code> pour imposer la résolution.</td><td>Fragile ; à proscrire en production.</td></tr>
+  <tr><td>Retirer <code>injectable</code></td><td>Écrire les enregistrements <code>get_it</code> à la main.</td><td>À réévaluer : les nouveautés de Dart réduisent le code à écrire. À faire si le blocage persiste début 2027.</td></tr>
+</table></div>
+
+<h3>L'état de votre pile</h3>
+<div class="tablewrap"><table>
+  <tr><th>Paquet</th><th>Version</th><th>Risque</th><th>Pourquoi</th></tr>
+  <tr><td><code>bloc</code> / <code>flutter_bloc</code></td><td>9.2.1 / 9.1.1</td><td><span class="tag t-ok">faible</span></td><td>API stable, pas de version majeure en 2026.</td></tr>
+  <tr><td><code>get_it</code></td><td>9.3.0</td><td><span class="tag t-ok">faible</span></td><td>Attention à la libération en ordre strict depuis la 9.0.0.</td></tr>
+  <tr><td><code>injectable_generator</code></td><td>3.1.3</td><td><span class="tag t-bad">élevé</span></td><td>Bloqué sur <code>build</code> 4 ; deux tickets ouverts depuis août et octobre, sans correctif publié.</td></tr>
+  <tr><td><code>freezed</code></td><td>4.0.3</td><td><span class="tag t-warn">moyen</span></td><td>Exige <code>analyzer</code> 14 ; certaines classes <code>@unfreezed</code> sont à réécrire.</td></tr>
+  <tr><td><code>json_serializable</code></td><td>6.15.2</td><td><span class="tag t-warn">moyen</span></td><td>Contraintes exactes face à <code>build</code> 5 <span class="tag t-warn">non vérifié</span>.</td></tr>
+  <tr><td><code>retrofit_generator</code></td><td>10.2.12</td><td><span class="tag t-warn">moyen</span></td><td>Support de <code>build</code> 5 <span class="tag t-warn">non vérifié</span>.</td></tr>
+  <tr><td><code>bdd_widget_test</code></td><td>3.0.5 ou 3.1.0</td><td><span class="tag t-warn">moyen</span></td><td>Depuis la 3.0, un fichier <code>.feature</code> mal formé fait échouer le build. La 3.1.0 exige <code>build</code> 5.</td></tr>
+  <tr><td><code>build_runner</code></td><td>2.16.1 ou 2.17.1</td><td><span class="tag t-bad">central</span></td><td>La 2.17.1 exige <code>build</code> 5 ; la 2.17.0 a été retirée.</td></tr>
+</table></div>
+
+<h2 id="flutter350">5. Flutter 3.50 dans le détail</h2>
+
+<div class="grid">
+  <div class="card">
+    <h3>Appeler le natif directement</h3>
+    <p>FFIgen (Objective-C) et JNIgen (Java, Kotlin) deviennent stables. On appelle les API natives sans passer par un <code>MethodChannel</code>, y compris de façon synchrone et depuis un isolate d'arrière-plan.</p>
+    <p style="margin:0">C'est la vraie nouveauté technique. Vos plugins existants continuent de fonctionner. Gardez une interface devant le code généré : il est verbeux et difficile à simuler en test.</p>
+  </div>
+  <div class="card">
+    <h3>Latence tactile sur iOS</h3>
+    <p style="margin:0">Les événements sont transmis immédiatement au framework : une image de moins de latence, soit 16 ms à 60 Hz et 8 ms à 120 Hz.</p>
+  </div>
+  <div class="card">
+    <h3>Sécurité Android</h3>
+    <p style="margin:0">En version publiée, les paramètres de route et de point d'entrée venant d'une autre application sont ignorés, et les drapeaux moteur rejetés. Si vous utilisez des liens profonds par ce biais, vérifiez-les.</p>
+  </div>
+  <div class="card">
+    <h3>Nouveautés du framework</h3>
+    <p style="margin:0">Découpe de zones défilantes, hauteur d'élément par constructeur dans les listes séparées, saisie de code à usage unique reçu par courriel, réduction des animations, fermeture des infobulles par Échap.</p>
+  </div>
+</div>
+
+<h3>Ce que le correctif 3.50.1 répare</h3>
+<div class="tablewrap"><table>
+  <tr><th>Problème de la 3.50.0</th><th>Qui est touché</th></tr>
+  <tr><td>Fichiers commençant par un point (<code>.env</code>) et dossiers préfixés <code>_</code> exclus en silence des paquets Android</td><td>Toute application qui embarque sa configuration en asset</td></tr>
+  <tr><td>Builds Android cassés avec des types de build personnalisés dès qu'un plugin est présent</td><td>Les projets à variantes (recette, préproduction…)</td></tr>
+  <tr><td>Affichage décalé sous Linux avec certains pilotes, Nvidia compris</td><td>Les applications desktop Linux</td></tr>
+  <tr><td><code>index.html</code> supprimé après deux builds web successifs avec puis sans hachage de contenu</td><td>Les déploiements web</td></tr>
+  <tr><td>Texte figé en mode WebAssembly sous isolation cross-origin</td><td>Les applications web en Wasm multi-fil</td></tr>
+</table></div>
+<p>Deux régressions desktop restaient signalées à la mi-novembre : un plantage sous Windows au redimensionnement quand Impeller est désactivé, et des dégradés mal rendus avec OpenGL ES.</p>
+
+<h3>Ruptures de comportement à connaître</h3>
+<ul>
+  <li>Les césures conditionnelles affichent maintenant un trait d'union.</li>
+  <li>L'ordre des widgets insérés dans un texte de droite à gauche change.</li>
+  <li><code>ignoringSemantics</code> est supprimé de <code>IgnorePointer</code> et <code>AbsorbPointer</code>.</li>
+  <li><code>SafeArea</code> se comporte différemment sur le web avec <code>viewport-fit=cover</code>.</li>
+</ul>
+
+<h2 id="plateformes">6. Plateforme par plateforme</h2>
+
+<div class="grid">
+  <div class="card">
+    <h3>Web</h3>
+    <ul>
+      <li>WebAssembly : actif par défaut sur Chrome et Edge 137+ ; à activer soi-même pour Safari 26.2+ et Firefox 147+.</li>
+      <li>Nouveau drapeau <code>--web-content-hash</code> pour gérer proprement les caches.</li>
+      <li>Les anciennes bibliothèques d'interop JavaScript sont dépréciées.</li>
+      <li>Le gain « deux fois plus d'images par seconde » en Wasm vient d'un banc d'essai interne de Google, non reproduit.</li>
+    </ul>
+  </div>
+  <div class="card">
+    <h3>Desktop</h3>
+    <ul>
+      <li>Impeller est le moteur de rendu par défaut sur macOS, Windows et Linux depuis 3.47.</li>
+      <li>Canonical pilote désormais le desktop à la place de Google.</li>
+      <li>Le multi-fenêtres reste expérimental : ses API ont encore été renommées en 3.50. Ne le planifiez pas en production.</li>
+    </ul>
+  </div>
+  <div class="card">
+    <h3>iOS et macOS</h3>
+    <ul>
+      <li>SwiftPM est le gestionnaire par défaut depuis 3.44 ; CocoaPods se fige le 2 décembre.</li>
+      <li>Minimum iOS 15 et macOS 12 depuis 3.47.</li>
+      <li><code>UIScene</code> obligatoire avec le SDK iOS 27.</li>
+      <li>Les Mac Intel ne sont plus testés ; une future version exigera Apple Silicon, y compris pour construire Android.</li>
+    </ul>
+  </div>
+  <div class="card">
+    <h3>Android</h3>
+    <ul>
+      <li>Nouveaux projets : AGP 9.3.1, Gradle 9.5.0, Java 17 minimum, SDK cible 36, SDK minimum 24.</li>
+      <li>Kotlin est intégré à AGP : les plugins qui l'appliquent encore à la main cesseront de fonctionner sous AGP 10.</li>
+      <li>Le nouveau mode de composition des vues natives (HCPP) reste à activer soi-même en stable.</li>
+    </ul>
+  </div>
+</div>
+
+<h2 id="dart">7. Le langage Dart</h2>
+<p>L'effort de l'année a porté sur les outils, le web et l'interop bien plus que sur le langage.</p>
+
+<div class="tablewrap"><table>
+  <tr><th>Version</th><th>Langage</th><th>Outils</th><th>À surveiller</th></tr>
+  <tr><td>3.11 (février)</td><td>Rien de nouveau</td><td>Analyse plus rapide, nettoyage du cache pub, motifs dans les espaces de travail</td><td><code>dart:js_util</code> et <code>package:js</code> ne compilent plus en Wasm</td></tr>
+  <tr><td>3.12 (mai)</td><td>Paramètres nommés privés</td><td>Rechargement à chaud piloté par un agent, Git LFS dans pub</td><td>Un lint signale de nouveaux cas</td></tr>
+  <tr><td>3.13 (août)</td><td><i>Primary constructors</i> stables, syntaxe de constructeur allégée</td><td>Six nouveaux lints, formateur revu</td><td><code>final</code> et <code>var</code> interdits sur les paramètres non déclarants</td></tr>
+  <tr><td>3.14 (novembre)</td><td>Rien de nouveau</td><td><code>dart migrate</code>, DartPad réécrit, FFIgen et JNIgen stables</td><td><code>dart:mirrors</code> déprécié</td></tr>
+</table></div>
+
+<div class="grid">
+  <div class="card">
+    <h3>Ce que les deux ajouts apportent</h3>
+    <p style="margin:0">Les <i>primary constructors</i> et les paramètres nommés privés réduisent le code répétitif des classes de données. Entités, cas d'usage et états peuvent souvent s'écrire sans générateur.</p>
+  </div>
+  <div class="card">
+    <h3>Ce qui n'arrivera pas</h3>
+    <p style="margin:0">Les macros sont abandonnées depuis janvier 2025. Les augmentations n'ont rien livré de stable cette année. La génération de code reste donc là pour longtemps.</p>
+  </div>
+  <div class="card">
+    <h3>Ce qui se prépare</h3>
+    <p style="margin:0">Dart 3.15, encore en préparation, prévoit des améliorations de la promotion de type et les extensions statiques. Rien n'est sorti.</p>
+  </div>
+</div>
+
+<h2 id="tests">8. Tests et rendus de référence</h2>
+<p>Aucune rupture directe dans <code>flutter_test</code> ni <code>integration_test</code> cette année. En revanche, les rendus de référence sont exposés à plusieurs changements :</p>
+<ul>
+  <li>le trait d'union visible sur les césures et l'ordre des widgets en texte de droite à gauche (3.50) ;</li>
+  <li>Impeller par défaut sur desktop, qui modifie l'anticrénelage sous Windows et Linux (3.47) ;</li>
+  <li>la bibliothèque de couleurs de Material, qui peut décaler les teintes générées à partir d'une couleur de base (3.41).</li>
+</ul>
+<p>Régénérez-les à chaque montée de version et faites-les tourner dans une tâche d'intégration continue séparée.</p>
+<p>Côté BDD, <code>bdd_widget_test</code> utilise depuis sa version 3 l'analyseur Gherkin officiel : un fichier <code>.feature</code> mal formé, toléré auparavant, fait maintenant échouer le build. <code>golden_toolkit</code> est abandonné ; une étape de comparaison de rendu est intégrée au paquet.</p>
+
+<h2 id="ia">9. IA : livré ou promis</h2>
+<div class="tablewrap"><table>
+  <tr><th>Brique</th><th>État</th><th>Commentaire</th></tr>
+  <tr><td>Serveur MCP Dart/Flutter et rechargement à chaud par agent</td><td><span class="tag t-ok">livré</span></td><td>Depuis mai. L'agent découvre l'application en cours tout seul.</td></tr>
+  <tr><td><i>Skills</i> d'agent et <i>skills</i> de paquets</td><td><span class="tag t-ok">livré</span></td><td>Un paquet peut embarquer ses propres consignes pour les agents. C'est la brique la plus utile au quotidien.</td></tr>
+  <tr><td>Genkit Dart</td><td><span class="tag t-ok">1.0 annoncée</span></td><td>Préversion en mai, version stable annoncée avec 3.50.</td></tr>
+  <tr><td>Firebase AI Logic</td><td><span class="tag t-ok">disponible</span></td><td>Appels au modèle depuis le client.</td></tr>
+  <tr><td>GenUI</td><td><span class="tag t-bad">alpha</span></td><td>Version 0.10, refonte cassante déjà annoncée. Bon pour un prototype, pas pour la production.</td></tr>
+  <tr><td>A2UI</td><td><span class="tag t-warn">version candidate</span></td><td>Le protocole n'a pas encore sa version 1.0.</td></tr>
+  <tr><td>Modèles sur l'appareil</td><td><span class="tag t-warn">non vérifié</span></td><td>Annoncé « bientôt » en mai ; livraison non confirmée.</td></tr>
+</table></div>
+<div class="note"><b>Un piège pour qui travaille en TDD :</b> la règle officielle <code>flutter-hot-reload</code> recharge l'application après chaque modification de l'agent. Quand votre boucle de retour est <code>flutter test</code>, cela n'apporte rien : désactivez-la ou encadrez-la.</div>
+
+<h2 id="eco">10. Écosystème et gouvernance</h2>
+<ul>
+  <li><b>Canonical</b> est responsable du desktop depuis mai.</li>
+  <li><b>Des RFC publiques</b> existent maintenant pour Flutter comme pour Dart.</li>
+  <li><b>Plus de 70 % des demandes de fusion ouvertes</b> viennent de contributeurs extérieurs à Google, selon une enquête du deuxième trimestre rapportée par une source secondaire.</li>
+  <li><b>Lecture possible :</b> c'est un gage de pérennité, et aussi le signe que Google ne finance plus seul tous les fronts.</li>
+  <li><b>Le fork Flock</b>, lancé fin 2024 par des contributeurs mécontents du rythme de Google, reste un symbole. Son activité réelle en 2026 n'a pas pu être établie <span class="tag t-warn">non vérifié</span>.</li>
+</ul>
+<p>Chiffres avancés par Google, à prendre comme des déclarations : 1,5 million de développeurs par mois (en hausse de 50 % sur un an), 1,3 milliard de téléchargements mensuels sur pub.dev, plus d'un million d'applications sur Google Play. Flutter équipe aussi le système multimédia du Toyota RAV4 2026.</p>
+
+<h2 id="bruit">11. Signal et bruit</h2>
+<div class="grid">
+  <div class="card">
+    <h3>Ce qui compte vraiment</h3>
+    <ul>
+      <li>La sortie de Material du SDK</li>
+      <li>Le conflit des générateurs de code</li>
+      <li>SwiftPM, Kotlin intégré, <code>UIScene</code>, Apple Silicon</li>
+      <li>L'interop native stable</li>
+      <li><code>dart migrate</code></li>
+      <li>La cadence trimestrielle prévisible</li>
+    </ul>
+  </div>
+  <div class="card">
+    <h3>Ce qui est prématuré</h3>
+    <ul>
+      <li>« Deux fois plus rapide en Wasm » : banc d'essai non publié</li>
+      <li>« +500 % pour GenUI » : base de comparaison inconnue</li>
+      <li>LG webOS et les modèles sur l'appareil : annoncés, non confirmés</li>
+      <li>Le multi-fenêtres, expérimental depuis un an</li>
+    </ul>
+  </div>
+</div>
+
+<h2 id="limites">12. Limites</h2>
+<ul>
+  <li>Cette page reprend un rapport de veille ; ses sources n'ont pas été rouvertes ici, hormis les deux tests d'installation de la section 4.</li>
+  <li>Non vérifiés par le rapport : la bêta 3.51, l'état de Flock, les annonces des conférences communautaires, la sortie de LG webOS, l'état des tickets <code>injectable</code> au 21 novembre.</li>
+  <li>Plusieurs articles tiers sur ces sujets contiennent des erreurs manifestes (un « Flutter 4.0 » ou un « Dart 3.41 » qui n'existent pas). Pour toute décision, remontez aux billets et changelogs officiels.</li>
+</ul>
+
+<footer>
+  Version complète, avec les 70 sources numérotées et le détail par paquet : <code>flutter-dart-2026-AGENT.md</code>, dans le même dossier.
+</footer>
+
+</main>
+</body>
+</html>

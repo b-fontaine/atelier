@@ -560,6 +560,15 @@ footer{margin-top:56px;color:var(--muted);font-size:.9rem;border-top:1px solid v
   <li><b>Briques jeunes</b> : Leptos, Jaspr, <code>native_toolchain_rust</code>, <code>import_rules</code>. Parade : chacune est isolée derrière une frontière et remplaçable.</li>
 </ul>
 
+<h3>Mise à jour du 21 novembre 2026 : ce que Flutter 3.50 change</h3>
+<p>Une veille sur Flutter et Dart en 2026 (page <code>docs/veille/flutter-dart-2026.html</code>) ne remet pas en cause l'architecture, mais ajoute quatre points d'attention.</p>
+<ul>
+  <li><b>Un conflit dans votre chaîne de génération de code.</b> <code>bdd_widget_test</code> 3.1.0 et <code>injectable_generator</code> ne peuvent pas être installés ensemble <span class="tag t-n">établi par essai</span>. Décision prise : garder <code>injectable</code>, avec <code>bdd_widget_test</code> 3.0.5 et des versions figées. L'essai S7 l'a confirmé <span class="tag t-v">essai réussi</span> : tous vos générateurs fonctionnent ensemble avec ces versions, et les scénarios Gherkin de l'essai S4 passent à l'identique. Le repli, non nécessaire aujourd'hui, serait d'écrire les enregistrements <code>get_it</code> à la main.</li>
+  <li><b>Flutter 3.50.1, pas 3.50.0.</b> La 3.50.0 exclut les fichiers <code>.env</code> des paquets Android et casse certains builds. Les essais ont tourné en 3.50.0.</li>
+  <li><b><code>material_ui</code> remplace <code>material.dart</code></b>, désormais déprécié. Tout le code part directement sur le nouveau paquet, avec une version figée.</li>
+  <li><b>Cibles Apple :</b> SwiftPM devient la seule voie (CocoaPods se fige le 2 décembre 2026) et les Mac Intel sortent du support. À couvrir par le job macOS déjà prévu.</li>
+</ul>
+
 <h2 id="route">14. Feuille de route</h2>
 <ol class="steps">
   <li>Squelette du dépôt : workspaces Rust et Dart, linters, CI minimale.</li>
